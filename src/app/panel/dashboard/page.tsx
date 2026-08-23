@@ -64,8 +64,7 @@ export default function DashboardPage() {
   const grouped = groupByDate(appointments);
 
   return (
-    <main className="flex-1 bg-[var(--background)]">
-      <PanelNav />
+    <main className="flex-1">
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
           <h1 className="font-display text-2xl text-[var(--accent-dark)]">Rezerwacje</h1>

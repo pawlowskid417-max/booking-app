@@ -1,21 +1,9 @@
 import { db } from "./db";
-import { scryptSync, timingSafeEqual, randomBytes } from "crypto";
+import { scryptSync, timingSafeEqual, randomBytes, createHmac } from "crypto";
 import { cookies } from "next/headers";
 
-// ============================================================
-// PROSTA AUTORYZACJA PANELU — bez zewnętrznych bibliotek/płatnych usług.
-// Sesja: podpisany losowy token trzymany w tabeli w pamięci procesu
-// (dla uproszczenia demo). W produkcji: rozważ NextAuth.js lub
-// przechowywanie sesji w tabeli DB z wygasaniem.
-// ============================================================
-
 const SESSION_COOKIE = "panel_session";
-
-// Sesje trzymane w pamięci procesu (mapa token -> userId).
-// UWAGA (produkcja): to znika przy restarcie serwera — do prostego,
-// jednosalonowego użytku wystarczające, ale do prawdziwego wdrożenia
-// warto przenieść do tabeli `sessions` w bazie.
-const sessions = new Map<string, { userId: string; expiresAt: number }>();
+const SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
@@ -39,10 +27,31 @@ export interface SessionUser {
   employeeId: string | null;
 }
 
+function sign(payload: string): string {
+  const hmac = createHmac("sha256", SECRET);
+  hmac.update(payload);
+  return `${payload}.${hmac.digest("hex")}`;
+}
+
+function verify(signed: string): string | null {
+  const parts = signed.split(".");
+  if (parts.length !== 2) return null;
+  const payload = parts[0];
+  const signature = parts[1];
+  
+  const expectedSignature = createHmac("sha256", SECRET).update(payload).digest("hex");
+  if (timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+    return payload;
+  }
+  return null;
+}
+
 export async function createSession(userId: string): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-  const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 7; // 7 dni
-  sessions.set(token, { userId, expiresAt });
+  const payloadStr = JSON.stringify({
+    userId,
+    exp: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 dni
+  });
+  const token = sign(payloadStr);
 
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
@@ -58,8 +67,6 @@ export async function createSession(userId: string): Promise<string> {
 
 export async function destroySession() {
   const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
-  if (token) sessions.delete(token);
   store.delete(SESSION_COOKIE);
 }
 
@@ -68,23 +75,29 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const session = sessions.get(token);
-  if (!session || session.expiresAt < Date.now()) {
-    sessions.delete(token);
+  const payloadStr = verify(token);
+  if (!payloadStr) return null;
+  
+  try {
+    const payload = JSON.parse(payloadStr);
+    if (payload.exp < Date.now()) {
+      return null;
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: payload.userId },
+      include: { employee: true },
+    });
+
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      employeeId: user.employee?.id ?? null,
+    };
+  } catch (e) {
     return null;
   }
-
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
-    include: { employee: true },
-  });
-
-  if (!user) return null;
-
-  return {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    employeeId: user.employee?.id ?? null,
-  };
 }
