@@ -3,7 +3,7 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { formatPrice, formatDurationMin } from "@/lib/types";
 import AnimatedSection from "@/components/AnimatedSection";
-import GalleryClientSection from "@/components/GalleryClientSection";
+import CircularGalleryClientSection from "@/components/CircularGalleryClientSection";
 import PixelBlast from "@/components/PixelBlast";
 import ReviewsClientSection from "@/components/ReviewsClientSection";
 
@@ -52,7 +52,7 @@ export default async function HomePage() {
       </header>
 
       {/* HERO */}
-      <section className="relative bg-zinc-950 overflow-hidden">
+      <section className="relative bg-[var(--hero-bg)] overflow-hidden">
         {settings.heroImageUrl && (
           <div className="absolute inset-0 z-0">
             <Image 
@@ -70,7 +70,7 @@ export default async function HomePage() {
           <PixelBlast
             variant="diamond"
             pixelSize={5}
-            color="#D9A5B0"
+            color="#E3BFC4"
             patternScale={6.25}
             patternDensity={1.25}
             enableRipples={false}
@@ -177,7 +177,7 @@ export default async function HomePage() {
 
       {/* GALERIA */}
       {galleryImages.length > 0 && (
-        <GalleryClientSection images={galleryImages} />
+        <CircularGalleryClientSection images={galleryImages} />
       )}
 
       {/* OPINIE */}

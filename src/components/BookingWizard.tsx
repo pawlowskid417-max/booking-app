@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Employee, Service } from "@/lib/types";
 import { formatPrice, formatDurationMin, formatDatePL } from "@/lib/types";
-
-type Step = "service" | "employee" | "datetime" | "details" | "confirmed";
+import Stepper, { Step } from "./Stepper";
 
 interface DayInfo {
   date: string;
@@ -12,7 +11,6 @@ interface DayInfo {
 }
 
 export default function BookingWizard() {
-  const [step, setStep] = useState<Step>("service");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +82,6 @@ export default function BookingWizard() {
   }, [selectedService, selectedEmployee, selectedDate]);
 
   const groupedDays = useMemo(() => {
-    // Grupujemy dni po miesiącu, żeby ładnie wyświetlić kalendarz
     const map = new Map<string, DayInfo[]>();
     for (const d of days) {
       const monthKey = d.date.slice(0, 7);
@@ -120,7 +117,6 @@ export default function BookingWizard() {
 
       if (!res.ok) {
         setError(data.error || "Coś poszło nie tak. Spróbuj ponownie.");
-        // Jeśli slot zajęty, cofnij do wyboru godziny i odśwież dostępność
         if (res.status === 409) {
           setSelectedTime(null);
           fetch(
@@ -134,7 +130,6 @@ export default function BookingWizard() {
       }
 
       setConfirmation(data.appointment);
-      setStep("confirmed");
     } catch {
       setError("Błąd połączenia. Sprawdź internet i spróbuj ponownie.");
     } finally {
@@ -142,340 +137,326 @@ export default function BookingWizard() {
     }
   }
 
-  const progressSteps: { key: Step; label: string }[] = [
-    { key: "service", label: "Usługa" },
-    { key: "employee", label: "Osoba" },
-    { key: "datetime", label: "Termin" },
-    { key: "details", label: "Dane" },
-  ];
-  const currentIndex = progressSteps.findIndex((s) => s.key === step);
+  if (confirmation) {
+    return (
+      <div className="text-center py-10">
+        <div className="w-16 h-16 rounded-full bg-[var(--accent-light)] text-[var(--accent-dark)] flex items-center justify-center text-3xl mx-auto mb-6">
+          ✓
+        </div>
+        <h2 className="font-display text-2xl text-[var(--accent-dark)] mb-2">
+          Wizyta zarezerwowana!
+        </h2>
+        <p className="text-[var(--muted)] mb-6">
+          Potwierdzenie wysłaliśmy na Twój adres email.
+        </p>
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 inline-block text-left text-sm space-y-1">
+          <p>
+            <strong>{confirmation.serviceName}</strong>
+          </p>
+          <p>{confirmation.employeeName}</p>
+          <p>
+            {formatDatePL(confirmation.date)}, godz. {confirmation.time}
+          </p>
+          <p className="font-semibold text-[var(--accent-dark)]">{confirmation.servicePrice}</p>
+        </div>
+        <div className="mt-8">
+          <a href="/" className="text-[var(--accent-dark)] hover:underline text-sm">
+            ← Wróć do strony głównej
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Zmienna przechowująca aktualny krok w komponencie Stepper
+  const [currentStepperStep, setCurrentStepperStep] = useState(1);
+
+  // Funkcja określająca, czy przycisk "Dalej" ma być zablokowany dla danego kroku
+  const isNextDisabled = () => {
+    if (currentStepperStep === 1 && !selectedService) return true;
+    if (currentStepperStep === 2 && !selectedEmployee) return true;
+    if (currentStepperStep === 3 && (!selectedDate || !selectedTime)) return true;
+    if (currentStepperStep === 4 && (!firstName || !lastName || !email)) return true;
+    if (loading) return true;
+    return false;
+  };
 
   return (
-    <div>
-      {step !== "confirmed" && (
-        <div className="flex items-center justify-center gap-2 mb-10">
-          {progressSteps.map((s, i) => (
-            <div key={s.key} className="flex items-center gap-2">
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
-                  i <= currentIndex
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-[var(--accent-light)] text-[var(--muted)]"
-                }`}
-              >
-                {i + 1}
-              </div>
-              <span
-                className={`text-sm hidden sm:inline ${
-                  i <= currentIndex ? "text-[var(--foreground)]" : "text-[var(--muted)]"
-                }`}
-              >
-                {s.label}
-              </span>
-              {i < progressSteps.length - 1 && (
-                <div className="w-6 h-px bg-[var(--border)] mx-1" />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
+    <div className="booking-stepper-wrapper">
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
           {error}
         </div>
       )}
 
-      {/* KROK 1: USŁUGA */}
-      {step === "service" && (
-        <div className="space-y-3">
-          {services.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => {
-                setSelectedService(s);
-                setSelectedEmployee(null);
-                setStep("employee");
-              }}
-              className="w-full text-left bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] rounded-2xl p-5 transition-colors"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="font-medium">{s.name}</h3>
-                  {s.description && (
-                    <p className="text-sm text-[var(--muted)] mt-0.5">{s.description}</p>
-                  )}
-                  <span className="text-xs text-[var(--muted)]">
-                    {formatDurationMin(s.durationMin)}
-                  </span>
-                </div>
-                <span className="text-[var(--accent-dark)] font-semibold whitespace-nowrap">
-                  {formatPrice(s.priceCents)}
-                </span>
-              </div>
-            </button>
-          ))}
-          {services.length === 0 && (
-            <p className="text-center text-[var(--muted)] py-10">Ładowanie usług...</p>
-          )}
-        </div>
-      )}
-
-      {/* KROK 2: PRACOWNIK */}
-      {step === "employee" && selectedService && (
-        <div>
-          <BackButton onClick={() => setStep("service")} label="Zmień usługę" />
-          <p className="text-sm text-[var(--muted)] mb-4">
-            Wybrano: <strong>{selectedService.name}</strong>
-          </p>
-
-          {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
-
-          <div className="space-y-3">
-            {!loading && employees.length > 1 && (
-              <button
-                onClick={() => {
-                  // "Dowolna osoba" = wybierz pierwszą dostępną (uproszczenie demo)
-                  setSelectedEmployee(employees[0]);
-                  setStep("datetime");
-                }}
-                className="w-full text-left bg-[var(--accent-light)] border border-[var(--border)] hover:border-[var(--accent)] rounded-2xl p-5 transition-colors"
-              >
-                <h3 className="font-medium">Dowolna dostępna osoba</h3>
-                <p className="text-sm text-[var(--muted)]">
-                  Pokażemy najbliższy wolny termin spośród całego zespołu
-                </p>
-              </button>
-            )}
-            {!loading &&
-              employees.map((e) => (
+      <Stepper
+        initialStep={1}
+        backButtonText="Wstecz"
+        nextButtonText={currentStepperStep === 4 ? (loading ? "Wysyłanie..." : "Zarezerwuj") : "Dalej"}
+        onStepChange={(step) => setCurrentStepperStep(step)}
+        onFinalStepCompleted={() => submitBooking()}
+        nextButtonProps={{
+          disabled: isNextDisabled(),
+          className: `duration-350 flex items-center justify-center rounded-full py-2 px-5 font-medium tracking-tight text-white transition ${
+            isNextDisabled()
+              ? "bg-zinc-300 pointer-events-none"
+              : "bg-[var(--accent)] hover:bg-[var(--accent-dark)]"
+          }`,
+        }}
+        backButtonProps={{
+          className: `duration-350 rounded px-4 py-2 transition ${
+            currentStepperStep === 1
+              ? "pointer-events-none opacity-50 text-neutral-400"
+              : "text-[var(--accent-dark)] hover:underline"
+          }`,
+        }}
+        stepCircleContainerClassName="!border-transparent shadow-none"
+      >
+        <Step>
+          <div>
+            <h2 className="font-display text-xl mb-4 text-center">Wybierz usługę</h2>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto px-1 py-1">
+              {services.map((s) => (
                 <button
-                  key={e.id}
+                  key={s.id}
                   onClick={() => {
-                    setSelectedEmployee(e);
-                    setStep("datetime");
+                    setSelectedService(s);
+                    setSelectedEmployee(null);
                   }}
-                  className="w-full text-left bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] rounded-2xl p-5 transition-colors flex items-center gap-4"
+                  className={`w-full text-left border rounded-2xl p-4 transition-colors ${
+                    selectedService?.id === s.id
+                      ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                      : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--accent)]"
+                  }`}
                 >
-                  <div className="w-11 h-11 rounded-full bg-[var(--accent-light)] flex items-center justify-center text-[var(--accent-dark)] font-display shrink-0">
-                    {e.firstName[0]}
-                    {e.lastName[0]}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">
-                      {e.firstName} {e.lastName}
-                    </h3>
-                    {e.bio && <p className="text-sm text-[var(--muted)]">{e.bio}</p>}
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-medium">{s.name}</h3>
+                      {s.description && (
+                        <p className="text-sm text-[var(--muted)] mt-0.5">{s.description}</p>
+                      )}
+                      <span className="text-xs text-[var(--muted)]">
+                        {formatDurationMin(s.durationMin)}
+                      </span>
+                    </div>
+                    <span className="text-[var(--accent-dark)] font-semibold whitespace-nowrap">
+                      {formatPrice(s.priceCents)}
+                    </span>
                   </div>
                 </button>
               ))}
-            {!loading && employees.length === 0 && (
-              <p className="text-center text-[var(--muted)] py-6">
-                Brak dostępnych osób dla tej usługi.
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* KROK 3: TERMIN */}
-      {step === "datetime" && selectedService && selectedEmployee && (
-        <div>
-          <BackButton onClick={() => setStep("employee")} label="Zmień osobę" />
-          <p className="text-sm text-[var(--muted)] mb-4">
-            <strong>{selectedService.name}</strong> — {selectedEmployee.firstName}{" "}
-            {selectedEmployee.lastName}
-          </p>
-
-          {!selectedDate && (
-            <div>
-              <h3 className="font-medium mb-3">Wybierz dzień</h3>
-              {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
-              {!loading &&
-                groupedDays.map(([month, monthDays]) => (
-                  <div key={month} className="mb-5">
-                    <p className="text-xs uppercase tracking-wide text-[var(--muted)] mb-2">
-                      {monthLabel(month)}
-                    </p>
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                      {monthDays.map((d) => {
-                        const dayNum = d.date.slice(8, 10);
-                        return (
-                          <button
-                            key={d.date}
-                            disabled={!d.hasSlots}
-                            onClick={() => setSelectedDate(d.date)}
-                            className={`aspect-square rounded-xl text-sm font-medium flex items-center justify-center transition-colors ${
-                              d.hasSlots
-                                ? "bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] cursor-pointer"
-                                : "bg-transparent text-[var(--border)] cursor-not-allowed"
-                            }`}
-                          >
-                            {parseInt(dayNum, 10)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {selectedDate && (
-            <div>
-              <button
-                onClick={() => setSelectedDate(null)}
-                className="text-sm text-[var(--accent-dark)] mb-4 hover:underline"
-              >
-                ← Zmień dzień
-              </button>
-              <h3 className="font-medium mb-3">{formatDatePL(selectedDate)}</h3>
-              {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
-              {!loading && slots.length === 0 && (
-                <p className="text-[var(--muted)] py-4">Brak wolnych godzin tego dnia.</p>
+              {services.length === 0 && (
+                <p className="text-center text-[var(--muted)] py-10">Ładowanie usług...</p>
               )}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {slots.map((t) => (
+            </div>
+          </div>
+        </Step>
+
+        <Step>
+          <div>
+            <h2 className="font-display text-xl mb-4 text-center">Wybierz osobę</h2>
+            {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto px-1 py-1">
+              {!loading && employees.length > 1 && (
+                <button
+                  onClick={() => setSelectedEmployee(employees[0])}
+                  className={`w-full text-left border rounded-2xl p-4 transition-colors ${
+                    selectedEmployee?.id === employees[0].id
+                      ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                      : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--accent)]"
+                  }`}
+                >
+                  <h3 className="font-medium">Dowolna dostępna osoba</h3>
+                  <p className="text-sm text-[var(--muted)]">
+                    Pokażemy najbliższy wolny termin spośród całego zespołu
+                  </p>
+                </button>
+              )}
+              {!loading &&
+                employees.map((e) => (
                   <button
-                    key={t}
-                    onClick={() => {
-                      setSelectedTime(t);
-                      setStep("details");
-                    }}
-                    className="bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] rounded-xl py-2.5 text-sm font-medium transition-colors"
+                    key={e.id}
+                    onClick={() => setSelectedEmployee(e)}
+                    className={`w-full text-left border rounded-2xl p-4 transition-colors flex items-center gap-4 ${
+                      selectedEmployee?.id === e.id
+                        ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                        : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--accent)]"
+                    }`}
                   >
-                    {t}
+                    <div className="w-11 h-11 rounded-full bg-[var(--background)] flex items-center justify-center text-[var(--accent-dark)] font-display shrink-0">
+                      {e.firstName[0]}
+                      {e.lastName[0]}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">
+                        {e.firstName} {e.lastName}
+                      </h3>
+                      {e.bio && <p className="text-sm text-[var(--muted)]">{e.bio}</p>}
+                    </div>
                   </button>
                 ))}
+              {!loading && employees.length === 0 && (
+                <p className="text-center text-[var(--muted)] py-6">
+                  Brak dostępnych osób dla tej usługi.
+                </p>
+              )}
+            </div>
+          </div>
+        </Step>
+
+        <Step>
+          <div>
+            <h2 className="font-display text-xl mb-4 text-center">Wybierz termin</h2>
+            <div className="max-h-[50vh] overflow-y-auto px-1 py-1">
+              {!selectedDate && (
+                <div>
+                  <h3 className="font-medium mb-3">Wybierz dzień</h3>
+                  {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
+                  {!loading &&
+                    groupedDays.map(([month, monthDays]) => (
+                      <div key={month} className="mb-5">
+                        <p className="text-xs uppercase tracking-wide text-[var(--muted)] mb-2">
+                          {monthLabel(month)}
+                        </p>
+                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                          {monthDays.map((d) => {
+                            const dayNum = d.date.slice(8, 10);
+                            return (
+                              <button
+                                key={d.date}
+                                disabled={!d.hasSlots}
+                                onClick={() => setSelectedDate(d.date)}
+                                className={`aspect-square rounded-xl text-sm font-medium flex items-center justify-center transition-colors ${
+                                  d.hasSlots
+                                    ? "bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] cursor-pointer"
+                                    : "bg-transparent text-[var(--border)] cursor-not-allowed"
+                                }`}
+                              >
+                                {parseInt(dayNum, 10)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {selectedDate && (
+                <div>
+                  <button
+                    onClick={() => {
+                      setSelectedDate(null);
+                      setSelectedTime(null);
+                    }}
+                    className="text-sm text-[var(--accent-dark)] mb-4 hover:underline"
+                  >
+                    ← Zmień dzień
+                  </button>
+                  <h3 className="font-medium mb-3">{formatDatePL(selectedDate)}</h3>
+                  {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
+                  {!loading && slots.length === 0 && (
+                    <p className="text-[var(--muted)] py-4">Brak wolnych godzin tego dnia.</p>
+                  )}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {slots.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setSelectedTime(t)}
+                        className={`border rounded-xl py-2.5 text-sm font-medium transition-colors ${
+                          selectedTime === t
+                            ? "border-[var(--accent)] bg-[var(--accent-light)]"
+                            : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--accent)]"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </Step>
+
+        <Step>
+          <div>
+            <h2 className="font-display text-xl mb-4 text-center">Twoje dane</h2>
+            <div className="bg-[var(--accent-light)] rounded-2xl p-4 mb-6 text-sm">
+              <p>
+                <strong>{selectedService?.name}</strong> ({selectedService ? formatDurationMin(selectedService.durationMin) : ""})
+              </p>
+              <p>
+                {selectedEmployee?.firstName} {selectedEmployee?.lastName}
+              </p>
+              <p>
+                {selectedDate ? formatDatePL(selectedDate) : ""}, godz. {selectedTime}
+              </p>
+              <p className="font-semibold text-[var(--accent-dark)] mt-1">
+                {selectedService ? formatPrice(selectedService.priceCents) : ""}
+              </p>
+            </div>
+
+            <form className="space-y-4 max-h-[40vh] overflow-y-auto px-1 py-1">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Imię" required>
+                  <input
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="input"
+                  />
+                </Field>
+                <Field label="Nazwisko" required>
+                  <input
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="input"
+                  />
+                </Field>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* KROK 4: DANE KLIENTA */}
-      {step === "details" && selectedService && selectedEmployee && selectedDate && selectedTime && (
-        <div>
-          <BackButton onClick={() => setStep("datetime")} label="Zmień termin" />
-
-          <div className="bg-[var(--accent-light)] rounded-2xl p-4 mb-6 text-sm">
-            <p>
-              <strong>{selectedService.name}</strong> ({formatDurationMin(selectedService.durationMin)})
-            </p>
-            <p>
-              {selectedEmployee.firstName} {selectedEmployee.lastName}
-            </p>
-            <p>
-              {formatDatePL(selectedDate)}, godz. {selectedTime}
-            </p>
-            <p className="font-semibold text-[var(--accent-dark)] mt-1">
-              {formatPrice(selectedService.priceCents)}
-            </p>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitBooking();
-            }}
-            className="space-y-4"
-          >
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Imię" required>
+              <Field label="Adres email" required hint="Wyślemy tu potwierdzenie i przypomnienie o wizycie">
                 <input
                   required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="input"
                 />
               </Field>
-              <Field label="Nazwisko" required>
+              <Field label="Telefon" hint="Opcjonalnie — do kontaktu w razie potrzeby">
                 <input
-                  required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="input"
                 />
               </Field>
-            </div>
-            <Field label="Adres email" required hint="Wyślemy tu potwierdzenie i przypomnienie o wizycie">
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-              />
-            </Field>
-            <Field label="Telefon" hint="Opcjonalnie — do kontaktu w razie potrzeby">
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="input"
-              />
-            </Field>
-            <Field label="Uwagi" hint="Opcjonalnie">
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="input min-h-[80px]"
-              />
-            </Field>
+              <Field label="Uwagi" hint="Opcjonalnie">
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  className="input min-h-[80px]"
+                />
+              </Field>
 
-            {/* HONEYPOT */}
-            <div style={{ display: "none" }} aria-hidden="true">
-              <label htmlFor="website">Strona internetowa</label>
-              <input
-                id="website"
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                value={gotcha}
-                onChange={(e) => setGotcha(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 text-white font-medium py-3.5 rounded-full transition-colors"
-            >
-              {loading ? "Rezerwuję..." : "Potwierdź rezerwację"}
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* POTWIERDZENIE */}
-      {step === "confirmed" && confirmation && (
-        <div className="text-center py-10">
-          <div className="w-16 h-16 rounded-full bg-[var(--accent-light)] text-[var(--accent-dark)] flex items-center justify-center text-3xl mx-auto mb-6">
-            ✓
+              {/* HONEYPOT */}
+              <div style={{ display: "none" }} aria-hidden="true">
+                <label htmlFor="website">Strona internetowa</label>
+                <input
+                  id="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={gotcha}
+                  onChange={(e) => setGotcha(e.target.value)}
+                />
+              </div>
+            </form>
           </div>
-          <h2 className="font-display text-2xl text-[var(--accent-dark)] mb-2">
-            Wizyta zarezerwowana!
-          </h2>
-          <p className="text-[var(--muted)] mb-6">
-            Potwierdzenie wysłaliśmy na Twój adres email.
-          </p>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 inline-block text-left text-sm space-y-1">
-            <p>
-              <strong>{confirmation.serviceName}</strong>
-            </p>
-            <p>{confirmation.employeeName}</p>
-            <p>
-              {formatDatePL(confirmation.date)}, godz. {confirmation.time}
-            </p>
-            <p className="font-semibold text-[var(--accent-dark)]">{confirmation.servicePrice}</p>
-          </div>
-          <div className="mt-8">
-            <a href="/" className="text-[var(--accent-dark)] hover:underline text-sm">
-              ← Wróć do strony głównej
-            </a>
-          </div>
-        </div>
-      )}
+        </Step>
+      </Stepper>
 
       <style jsx global>{`
         .input {
@@ -492,17 +473,6 @@ export default function BookingWizard() {
         }
       `}</style>
     </div>
-  );
-}
-
-function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="text-sm text-[var(--accent-dark)] mb-4 hover:underline block"
-    >
-      ← {label}
-    </button>
   );
 }
 
