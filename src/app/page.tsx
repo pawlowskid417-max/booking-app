@@ -46,7 +46,7 @@ export default async function HomePage() {
       </header>
 
       {/* HERO */}
-      <section className="relative bg-[var(--accent-light)] overflow-hidden">
+      <section className="relative bg-zinc-950 overflow-hidden">
         {settings.heroImageUrl && (
           <div className="absolute inset-0 z-0">
             <Image 
@@ -60,7 +60,7 @@ export default async function HomePage() {
           </div>
         )}
 
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-60">
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-80">
           <PixelBlast
             variant="diamond"
             pixelSize={5}
@@ -81,13 +81,13 @@ export default async function HomePage() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-28 text-center">
           <AnimatedSection>
-            <h1 className="font-display text-5xl md:text-6xl text-[var(--foreground)] mb-6 tracking-tight leading-tight max-w-3xl mx-auto">
+            <h1 className="font-display text-5xl md:text-6xl mb-6 tracking-tight leading-tight max-w-3xl mx-auto bg-gradient-to-br from-white via-white/90 to-white/30 bg-clip-text text-transparent drop-shadow-md">
               Piękne paznokcie zaczynają się tutaj
             </h1>
           </AnimatedSection>
           
           <AnimatedSection delay={0.2}>
-            <p className="text-[var(--foreground)] opacity-80 text-lg max-w-xl mx-auto mb-10">
+            <p className="text-zinc-300 text-lg max-w-xl mx-auto mb-10">
               Umów wizytę online w kilka kliknięć — wybierz usługę, osobę i dogodny
               termin. Bez telefonowania, bez czekania.
             </p>
@@ -96,7 +96,7 @@ export default async function HomePage() {
           <AnimatedSection delay={0.4}>
             <Link
               href="/rezerwacja"
-              className="inline-block bg-[var(--foreground)] hover:bg-[var(--accent-dark)] text-white font-medium px-8 py-4 rounded-full transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-0.5 duration-300"
+              className="inline-block bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-medium px-8 py-4 rounded-full transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-0.5 duration-300"
             >
               Sprawdź wolne terminy
             </Link>
