@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { formatPrice, formatDurationMin } from "@/lib/types";
 import AnimatedSection from "@/components/AnimatedSection";
 import GalleryClientSection from "@/components/GalleryClientSection";
+import PixelBlast from "@/components/PixelBlast";
 
 export const revalidate = 60; // Odświeżaj stronę w tle co maksymalnie 60 sekund (ISR)
 
@@ -58,6 +59,26 @@ export default async function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] to-transparent" />
           </div>
         )}
+
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-60">
+          <PixelBlast
+            variant="diamond"
+            pixelSize={5}
+            color="#ff92ff"
+            patternScale={6.25}
+            patternDensity={1.25}
+            enableRipples={false}
+            rippleSpeed={0.3}
+            rippleThickness={0.1}
+            rippleIntensityScale={1}
+            speed={1.05}
+            transparent
+            edgeFade={0.28}
+            className=""
+            style={{}}
+          />
+        </div>
+
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-28 text-center">
           <AnimatedSection>
             <h1 className="font-display text-5xl md:text-6xl text-[var(--foreground)] mb-6 tracking-tight leading-tight max-w-3xl mx-auto">
