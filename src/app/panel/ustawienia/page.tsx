@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PanelNav from "@/components/PanelNav";
+import ImageUpload from "@/components/ImageUpload";
 
 interface SettingsData {
   booking_window_days: number;
@@ -12,6 +13,11 @@ interface SettingsData {
   salon_phone: string | null;
   salon_address: string | null;
   contact_email: string | null;
+  hero_image_url: string | null;
+  instagram_url: string | null;
+  address: string | null;
+  map_url: string | null;
+  opening_hours: string | null;
 }
 
 export default function UstawieniaPage() {
@@ -42,6 +48,11 @@ export default function UstawieniaPage() {
         salonPhone: settings.salon_phone,
         salonAddress: settings.salon_address,
         contactEmail: settings.contact_email,
+        heroImageUrl: settings.hero_image_url,
+        instagramUrl: settings.instagram_url,
+        address: settings.address,
+        mapUrl: settings.map_url,
+        openingHours: settings.opening_hours,
       }),
     });
 
@@ -137,7 +148,15 @@ export default function UstawieniaPage() {
         </section>
 
         <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 mb-6">
-          <h2 className="font-medium mb-4">Dane salonu</h2>
+          <h2 className="font-medium mb-4">Dane salonu i Wygląd</h2>
+          
+          <ImageUpload
+            label="Zdjęcie główne w tle (Hero)"
+            value={settings.hero_image_url}
+            onChange={(url) => setSettings({ ...settings, hero_image_url: url })}
+            aspectRatio="video"
+          />
+
           <label className="block mb-3">
             <span className="text-sm font-medium">Nazwa salonu</span>
             <input
@@ -162,12 +181,38 @@ export default function UstawieniaPage() {
               className="input"
             />
           </label>
-          <label className="block">
+          <label className="block mb-3">
             <span className="text-sm font-medium">Email kontaktowy</span>
             <input
               value={settings.contact_email ?? ""}
               onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
               className="input"
+            />
+          </label>
+          <label className="block mb-3">
+            <span className="text-sm font-medium">Link do wizytówki z mapą (Google Maps)</span>
+            <input
+              value={settings.map_url ?? ""}
+              onChange={(e) => setSettings({ ...settings, map_url: e.target.value })}
+              className="input"
+              placeholder="np. https://maps.app.goo.gl/..."
+            />
+          </label>
+          <label className="block mb-3">
+            <span className="text-sm font-medium">Link do Instagrama</span>
+            <input
+              value={settings.instagram_url ?? ""}
+              onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value })}
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">Godziny otwarcia (tekst)</span>
+            <textarea
+              value={settings.opening_hours ?? ""}
+              onChange={(e) => setSettings({ ...settings, opening_hours: e.target.value })}
+              className="input min-h-[100px]"
+              placeholder="Pon-Pt: 9:00 - 18:00&#10;Sob: 9:00 - 14:00"
             />
           </label>
         </section>

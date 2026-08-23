@@ -21,15 +21,15 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --font-display: var(--font-heading);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
-h1, h2, h3, .font-display {
-  font-family: var(--font-display), Georgia, serif;
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-heading), serif;
 }

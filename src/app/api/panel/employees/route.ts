@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tylko właściciel może dodawać pracowników" }, { status: 403 });
   }
 
-  const { firstName, lastName, bio, serviceIds } = await req.json();
+  const { firstName, lastName, bio, photoUrl, serviceIds } = await req.json();
 
   if (!firstName?.trim() || !lastName?.trim()) {
     return NextResponse.json({ error: "Imię i nazwisko są wymagane" }, { status: 400 });
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       id: randomUUID(),
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      photoUrl: photoUrl || null,
       bio: bio?.trim() || null,
       isActive: true,
       displayOrder: maxOrder + 1,

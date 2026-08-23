@@ -141,9 +141,28 @@ model BookingSettings {
   salonAddress        String?
   contactEmail        String?
 
+  heroImageUrl        String?
+  instagramUrl        String?
+  address             String?
+  mapUrl              String?
+  openingHours        String?  // JSON string (np. { "mon": "9:00-18:00", ... })
+
   updatedAt           DateTime @updatedAt
 
   @@map("booking_settings")
+}
+
+// ------------------------------------------------------------
+// GALERIA ZDJĘĆ
+// ------------------------------------------------------------
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("gallery_images")
 }
 
 // ------------------------------------------------------------

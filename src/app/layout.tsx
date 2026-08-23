@@ -19,20 +19,18 @@ export const metadata: Metadata = {
   },
 };
 
+import { Playfair_Display, Inter } from "next/font/google";
+
+const heading = Playfair_Display({ subsets: ["latin-ext"], variable: "--font-heading", display: "swap" });
+const body = Inter({ subsets: ["latin-ext"], variable: "--font-body", display: "swap" });
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pl"
-      className="h-full antialiased"
-      style={
-        {
-          "--font-display": "Georgia, 'Times New Roman', serif",
-          "--font-body":
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        } as React.CSSProperties
-      }
+      className={`h-full antialiased ${heading.variable} ${body.variable}`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col font-body">{children}</body>
     </html>
   );
 }

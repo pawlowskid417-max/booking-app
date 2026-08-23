@@ -29,7 +29,12 @@ export async function PATCH(req: NextRequest) {
     "salonName",
     "salonPhone",
     "salonAddress",
-    "contactEmail"
+    "contactEmail",
+    "heroImageUrl",
+    "instagramUrl",
+    "address",
+    "mapUrl",
+    "openingHours"
   ];
 
   for (const field of allowedFields) {

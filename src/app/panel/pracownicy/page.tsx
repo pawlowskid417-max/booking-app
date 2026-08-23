@@ -2,14 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 import PanelNav from "@/components/PanelNav";
+import ImageUpload from "@/components/ImageUpload";
 import type { Service } from "@/lib/types";
 
 interface EmployeeRow {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
+  photoUrl: string | null;
   bio: string | null;
-  is_active: number;
+  isActive: boolean;
   serviceIds: string[];
 }
 
@@ -22,6 +24,7 @@ export default function PracownicyPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [bio, setBio] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
 
@@ -56,13 +59,14 @@ export default function PracownicyPage() {
     const res = await fetch("/api/panel/employees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, bio, serviceIds: selectedServiceIds }),
+      body: JSON.stringify({ firstName, lastName, bio, photoUrl, serviceIds: selectedServiceIds }),
     });
 
     if (res.ok) {
       setFirstName("");
       setLastName("");
       setBio("");
+      setPhotoUrl("");
       setSelectedServiceIds([]);
       load();
     } else {
@@ -109,21 +113,26 @@ export default function PracownicyPage() {
             <div
               key={e.id}
               className={`bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 ${
-                !e.is_active ? "opacity-50" : ""
+                !e.isActive ? "opacity-50" : ""
               }`}
             >
               <div className="flex items-center justify-between gap-4 mb-3">
-                <div>
-                  <p className="font-medium">
-                    {e.first_name} {e.last_name}
-                  </p>
-                  {e.bio && <p className="text-sm text-[var(--muted)]">{e.bio}</p>}
+                <div className="flex items-center gap-4">
+                  {e.photoUrl && (
+                    <img src={e.photoUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {e.firstName} {e.lastName}
+                    </p>
+                    {e.bio && <p className="text-sm text-[var(--muted)]">{e.bio}</p>}
+                  </div>
                 </div>
                 <button
-                  onClick={() => toggleActive(e.id, !!e.is_active)}
+                  onClick={() => toggleActive(e.id, !!e.isActive)}
                   className="text-xs border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5 rounded-full whitespace-nowrap shrink-0"
                 >
-                  {e.is_active ? "Dezaktywuj" : "Aktywuj"}
+                  {e.isActive ? "Dezaktywuj" : "Aktywuj"}
                 </button>
               </div>
               <div>
@@ -169,6 +178,12 @@ export default function PracownicyPage() {
                 <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="input" />
               </label>
             </div>
+            <ImageUpload
+              label="Zdjęcie pracownika (1:1)"
+              value={photoUrl}
+              onChange={setPhotoUrl}
+              aspectRatio="square"
+            />
             <label className="block">
               <span className="text-sm font-medium">Opis / bio (opcjonalnie)</span>
               <input value={bio} onChange={(e) => setBio(e.target.value)} className="input" />
