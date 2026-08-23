@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { formatPrice, formatDurationMin } from "@/lib/types";
 import AnimatedSection from "@/components/AnimatedSection";
 import CircularGalleryClientSection from "@/components/CircularGalleryClientSection";
+import GalleryClientSection from "@/components/GalleryClientSection";
 import PixelBlast from "@/components/PixelBlast";
 import ReviewsClientSection from "@/components/ReviewsClientSection";
 
@@ -175,9 +176,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* GALERIA */}
+      {/* GALERIA - 3D */}
       {galleryImages.length > 0 && (
         <CircularGalleryClientSection images={galleryImages} />
+      )}
+
+      {/* GALERIA - KAFELKI */}
+      {galleryImages.length > 0 && (
+        <GalleryClientSection images={galleryImages} />
       )}
 
       {/* OPINIE */}

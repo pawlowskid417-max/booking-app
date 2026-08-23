@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { upload } from "@vercel/blob/client";
 
 interface ImageUploadProps {
   label: string;
@@ -24,27 +25,16 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Plik jest za duży (max 5MB)");
-      return;
-    }
-
     setUploading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-        method: "POST",
-        body: file,
+      const newBlob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
       });
 
-      if (!response.ok) {
-        throw new Error("Błąd podczas wgrywania");
-      }
-
-      const data = await response.json();
-      onChange(data.url);
+      onChange(newBlob.url);
     } catch (err: any) {
       setError(err.message || "Błąd wgrywania");
     } finally {
@@ -63,7 +53,7 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
         {value ? (
           <Image src={value} alt="Preview" fill className="object-cover" />
         ) : (
-          <span className="text-sm">{uploading ? "Wgrywanie..." : "Kliknij, aby wgrać zdjęcie"}</span>
+          <span className="text-sm">{uploading ? "Wgrywanie..." : "Kliknij, aby wgrać zdjęcie (bez limitu rozmiaru)"}</span>
         )}
       </div>
       
