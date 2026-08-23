@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { Appointment, DayOverride, WorkingHour } from "@prisma/client";
 
 export interface BookingSettings {
   id: string;
@@ -44,16 +45,21 @@ function minutesToTime(min: number): string {
   return `${h}:${m}`;
 }
 
-async function getWorkingWindowForDate(
-  employeeId: string,
-  dateStr: string
-): Promise<{ start: string; end: string } | null> {
-  const override = await db.dayOverride.findFirst({
-    where: {
-      employeeId,
-      date: new Date(dateStr + "T00:00:00.000Z"),
-    },
-  });
+interface Context {
+  settings: BookingSettings;
+  overrides: DayOverride[];
+  workingHours: WorkingHour[];
+  appointments: Appointment[];
+}
+
+function getWorkingWindowForDateFromContext(
+  dateStr: string,
+  ctx: Context
+): { start: string; end: string } | null {
+  const dateIso = dateStr + "T00:00:00.000Z";
+  const dateObj = new Date(dateIso);
+  
+  const override = ctx.overrides.find((o) => o.date.getTime() === dateObj.getTime());
 
   if (override) {
     if (override.type === "DAY_OFF") return null;
@@ -62,48 +68,36 @@ async function getWorkingWindowForDate(
     }
   }
 
-  const weekday = new Date(dateStr + "T00:00:00.000Z").getUTCDay();
-  const wh = await db.workingHour.findFirst({
-    where: {
-      employeeId,
-      weekday,
-      isActive: true,
-    },
-  });
+  const weekday = dateObj.getUTCDay();
+  const wh = ctx.workingHours.find((w) => w.weekday === weekday && w.isActive);
 
   if (!wh) return null;
   return { start: wh.startTime, end: wh.endTime };
 }
 
-export async function getAvailableSlotsForDay(
-  employeeId: string,
+function getAvailableSlotsFromContext(
   dateStr: string,
-  serviceDurationMin: number
-): Promise<string[]> {
-  const settings = await getBookingSettings();
-  const { from, to } = getBookableDateRange(settings);
-
+  serviceDurationMin: number,
+  ctx: Context
+): string[] {
+  const { from, to } = getBookableDateRange(ctx.settings);
   if (dateStr < from || dateStr > to) return [];
 
-  const window = await getWorkingWindowForDate(employeeId, dateStr);
+  const window = getWorkingWindowForDateFromContext(dateStr, ctx);
   if (!window) return [];
 
   const dayStartMin = timeToMinutes(window.start);
   const dayEndMin = timeToMinutes(window.end);
-  const step = settings.slotStepMinutes;
+  const step = ctx.settings.slotStepMinutes;
 
   const dayStartIso = new Date(`${dateStr}T00:00:00.000Z`);
   const dayEndIso = new Date(`${dateStr}T23:59:59.999Z`);
-  const existing = await db.appointment.findMany({
-    where: {
-      employeeId,
-      status: { in: ["PENDING", "CONFIRMED"] },
-      startAt: { lt: dayEndIso },
-      endAt: { gt: dayStartIso },
-    },
-  });
+  
+  const dayAppointments = ctx.appointments.filter(
+    (a) => a.startAt < dayEndIso && a.endAt > dayStartIso
+  );
 
-  const busyRanges = existing.map((a) => ({
+  const busyRanges = dayAppointments.map((a) => ({
     start: Math.round((a.startAt.getTime() - dayStartIso.getTime()) / 60000),
     end: Math.round((a.endAt.getTime() - dayStartIso.getTime()) / 60000),
   }));
@@ -111,7 +105,7 @@ export async function getAvailableSlotsForDay(
   const now = new Date();
   const isToday = toDateStr(now) === dateStr;
   const minStartMin = isToday
-    ? Math.round((now.getTime() - dayStartIso.getTime()) / 60000) + settings.minLeadTimeHours * 60
+    ? Math.round((now.getTime() - dayStartIso.getTime()) / 60000) + ctx.settings.minLeadTimeHours * 60
     : -Infinity;
 
   const slots: string[] = [];
@@ -124,6 +118,36 @@ export async function getAvailableSlotsForDay(
   }
 
   return slots;
+}
+
+export async function getAvailableSlotsForDay(
+  employeeId: string,
+  dateStr: string,
+  serviceDurationMin: number
+): Promise<string[]> {
+  const settings = await getBookingSettings();
+  const dayStartIso = new Date(`${dateStr}T00:00:00.000Z`);
+  const dayEndIso = new Date(`${dateStr}T23:59:59.999Z`);
+
+  const [overrides, workingHours, appointments] = await Promise.all([
+    db.dayOverride.findMany({
+      where: { employeeId, date: dayStartIso },
+    }),
+    db.workingHour.findMany({
+      where: { employeeId, isActive: true },
+    }),
+    db.appointment.findMany({
+      where: {
+        employeeId,
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startAt: { lt: dayEndIso },
+        endAt: { gt: dayStartIso },
+      },
+    }),
+  ]);
+
+  const ctx: Context = { settings, overrides, workingHours, appointments };
+  return getAvailableSlotsFromContext(dateStr, serviceDurationMin, ctx);
 }
 
 export async function isSlotStillAvailable(
@@ -142,6 +166,31 @@ export async function getBookableDaysOverview(
 ): Promise<{ date: string; hasSlots: boolean }[]> {
   const settings = await getBookingSettings();
   const { from, to } = getBookableDateRange(settings);
+  
+  const fromIso = new Date(`${from}T00:00:00.000Z`);
+  const toIso = new Date(`${to}T23:59:59.999Z`);
+
+  const [overrides, workingHours, appointments] = await Promise.all([
+    db.dayOverride.findMany({
+      where: { 
+        employeeId,
+        date: { gte: fromIso, lte: toIso }
+      },
+    }),
+    db.workingHour.findMany({
+      where: { employeeId, isActive: true },
+    }),
+    db.appointment.findMany({
+      where: {
+        employeeId,
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startAt: { lt: toIso },
+        endAt: { gt: fromIso },
+      },
+    }),
+  ]);
+
+  const ctx: Context = { settings, overrides, workingHours, appointments };
 
   const result: { date: string; hasSlots: boolean }[] = [];
   const cur = new Date(from + "T00:00:00Z");
@@ -149,7 +198,7 @@ export async function getBookableDaysOverview(
 
   while (cur <= end) {
     const dateStr = toDateStr(cur);
-    const slots = await getAvailableSlotsForDay(employeeId, dateStr, serviceDurationMin);
+    const slots = getAvailableSlotsFromContext(dateStr, serviceDurationMin, ctx);
     result.push({ date: dateStr, hasSlots: slots.length > 0 });
     cur.setDate(cur.getDate() + 1);
   }
