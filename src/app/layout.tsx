@@ -4,6 +4,19 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Studio Paznokci Bella — Rezerwacja online",
   description: "Umów wizytę na manicure, pedicure i stylizację paznokci online w kilka kliknięć.",
+  openGraph: {
+    title: "Studio Paznokci Bella — Rezerwacja online",
+    description: "Umów wizytę na manicure, pedicure i stylizację paznokci online w kilka kliknięć.",
+    url: "https://studiobella.pl",
+    siteName: "Studio Bella",
+    locale: "pl_PL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Studio Paznokci Bella",
+    description: "Umów wizytę na manicure, pedicure i stylizację paznokci online w kilka kliknięć.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
