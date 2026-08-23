@@ -5,8 +5,10 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE = "panel_session";
 const SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
-if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-  throw new Error("CRITICAL: JWT_SECRET environment variable is missing in production!");
+function requireSecret() {
+  if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+    throw new Error("CRITICAL: JWT_SECRET environment variable is missing in production!");
+  }
 }
 
 export function hashPassword(password: string): string {
@@ -32,12 +34,14 @@ export interface SessionUser {
 }
 
 function sign(payload: string): string {
+  requireSecret();
   const hmac = createHmac("sha256", SECRET);
   hmac.update(payload);
   return `${payload}.${hmac.digest("hex")}`;
 }
 
 function verify(signed: string): string | null {
+  requireSecret();
   const parts = signed.split(".");
   if (parts.length !== 2) return null;
   const payload = parts[0];
