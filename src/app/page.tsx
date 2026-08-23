@@ -2,22 +2,22 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatPrice, formatDurationMin } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // Odświeżaj stronę w tle co maksymalnie 60 sekund (ISR)
 
 export default async function HomePage() {
-  const services = await db.service.findMany({
-    where: { isActive: true },
-    orderBy: { displayOrder: "asc" },
-  });
-
-  const employees = await db.employee.findMany({
-    where: { isActive: true },
-    orderBy: { displayOrder: "asc" },
-  });
-
-  const settings = await db.bookingSettings.findUnique({
-    where: { id: "singleton" },
-  });
+  const [services, employees, settings] = await Promise.all([
+    db.service.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+    }),
+    db.employee.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+    }),
+    db.bookingSettings.findUnique({
+      where: { id: "singleton" },
+    })
+  ]);
 
   if (!settings) return null;
 
