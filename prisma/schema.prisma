@@ -1,0 +1,208 @@
+// ============================================================
+// SCHEMA PRISMA — System rezerwacji dla salonu stylizacji paznokci
+// ============================================================
+// UWAGA: w tym demo używamy SQLite (plik lokalny, zero configu).
+// W produkcji: zmień provider na "postgresql" i DATABASE_URL na
+// connection string z Neon/Supabase — reszta schematu zostaje bez zmian.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// UŻYTKOWNICY PANELU (właściciel / pracownicy z dostępem do panelu)
+// ------------------------------------------------------------
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         String    @default("EMPLOYEE") // "OWNER" | "EMPLOYEE"
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  employee     Employee?
+
+  @@map("users")
+}
+
+// ------------------------------------------------------------
+// PRACOWNICY / STANOWISKA (osoby, na które można się umówić)
+// ------------------------------------------------------------
+model Employee {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  photoUrl     String?
+  bio          String?
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  services     EmployeeService[]
+  workingHours WorkingHour[]
+  dayOverrides DayOverride[]
+  appointments Appointment[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("employees")
+}
+
+// ------------------------------------------------------------
+// USŁUGI
+// ------------------------------------------------------------
+model Service {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  durationMin  Int      // czas trwania w minutach — kluczowe dla obliczania slotów
+  priceCents   Int      // cena w groszach
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+
+  employees    EmployeeService[]
+  appointments Appointment[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("services")
+}
+
+model EmployeeService {
+  employeeId String
+  serviceId  String
+
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, serviceId])
+  @@map("employee_services")
+}
+
+// ------------------------------------------------------------
+// GRAFIK CYKLICZNY (stałe godziny pracy w danym dniu tygodnia)
+// weekday: 0=niedziela, 1=poniedziałek, ... 6=sobota (jak JS Date.getDay())
+// ------------------------------------------------------------
+model WorkingHour {
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  weekday    Int      // 0-6
+  startTime  String   // "HH:mm"
+  endTime    String   // "HH:mm"
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([employeeId, weekday])
+  @@map("working_hours")
+}
+
+// ------------------------------------------------------------
+// WYJĄTKI OD GRAFIKU (urlopy, dni wolne, zmienione godziny)
+// ------------------------------------------------------------
+model DayOverride {
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  date       DateTime // konkretny dzień (przechowywany jako północ UTC tego dnia)
+  type       String   // "DAY_OFF" | "CUSTOM_HOURS"
+
+  startTime  String?  // wypełniane tylko gdy type = CUSTOM_HOURS
+  endTime    String?
+
+  note       String?
+
+  createdAt  DateTime @default(now())
+
+  @@unique([employeeId, date])
+  @@map("day_overrides")
+}
+
+// ------------------------------------------------------------
+// GLOBALNE USTAWIENIA SYSTEMU REZERWACJI (jeden wiersz - singleton)
+// ------------------------------------------------------------
+model BookingSettings {
+  id                  String   @id @default("singleton")
+
+  bookingWindowDays   Int      @default(30) // dziś + ile dni do przodu można rezerwować
+  minLeadTimeHours    Int      @default(2)  // min. wyprzedzenie rezerwacji w godzinach
+  slotStepMinutes     Int      @default(30) // krok siatki slotów czasowych
+  autoConfirmBookings Boolean  @default(true)
+
+  salonName           String   @default("Salon Paznokci")
+  salonPhone          String?
+  salonAddress        String?
+  contactEmail        String?
+
+  updatedAt           DateTime @updatedAt
+
+  @@map("booking_settings")
+}
+
+// ------------------------------------------------------------
+// REZERWACJE
+// status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW"
+// ------------------------------------------------------------
+model Appointment {
+  id              String   @id @default(cuid())
+
+  employeeId      String
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  clientFirstName String
+  clientLastName  String
+  clientEmail     String   // OBOWIĄZKOWY — główny kanał potwierdzeń/przypomnień
+  clientPhone     String?  // opcjonalny — dodatkowy kontakt
+  note            String?
+
+  startAt         DateTime
+  endAt           DateTime
+
+  status          String   @default("CONFIRMED")
+
+  cancelToken     String   @unique @default(cuid())
+
+  confirmationEmailSentAt DateTime?
+  reminderEmailSentAt     DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([employeeId, startAt])
+  @@index([clientEmail])
+  @@index([status])
+  @@map("appointments")
+}
+
+// ------------------------------------------------------------
+// LOG POWIADOMIEŃ EMAIL
+// ------------------------------------------------------------
+model NotificationLog {
+  id            String   @id @default(cuid())
+  appointmentId String
+  type          String   // "BOOKING_CONFIRMATION" | "BOOKING_REMINDER" | "BOOKING_CANCELLED"
+  recipient     String
+  status        String   // "SENT" | "FAILED"
+  errorMessage  String?
+  sentAt        DateTime @default(now())
+
+  @@index([appointmentId])
+  @@map("notification_logs")
+}
