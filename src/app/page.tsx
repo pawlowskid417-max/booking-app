@@ -70,7 +70,7 @@ export default async function HomePage() {
           <PixelBlast
             variant="diamond"
             pixelSize={5}
-            color="#ff92ff"
+            color="#D9A5B0"
             patternScale={6.25}
             patternDensity={1.25}
             enableRipples={false}
