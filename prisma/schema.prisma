@@ -6,14 +6,7 @@
 // connection string z Neon/Supabase — reszta schematu zostaje bez zmian.
 // ============================================================
 
-generator client {
-  provider = "prisma-client-js"
-}
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
 
 // ------------------------------------------------------------
 // UŻYTKOWNICY PANELU (właściciel / pracownicy z dostępem do panelu)
