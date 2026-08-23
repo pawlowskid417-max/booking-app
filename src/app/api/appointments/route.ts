@@ -17,6 +17,7 @@ interface CreateAppointmentBody {
   clientEmail: string;
   clientPhone?: string;
   note?: string;
+  _gotcha?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -37,7 +38,25 @@ export async function POST(req: NextRequest) {
     clientEmail,
     clientPhone,
     note,
+    _gotcha,
   } = body;
+
+  // HONEYPOT: if filled, act like it succeeded to trick the bot
+  if (_gotcha && _gotcha.length > 0) {
+    return NextResponse.json({
+      success: true,
+      appointment: {
+        id: randomUUID(),
+        status: "PENDING",
+        date: date || "2099-01-01",
+        time: time || "12:00",
+        serviceName: "Fake Service",
+        servicePrice: "0 zł",
+        employeeName: "Fake Person",
+        cancelToken: randomUUID(),
+      },
+    });
+  }
 
   if (!employeeId || !serviceId || !date || !time) {
     return NextResponse.json({ error: "Brak wymaganych danych terminu" }, { status: 400 });

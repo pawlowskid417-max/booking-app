@@ -29,21 +29,21 @@ async function sendEmailRaw(payload: EmailPayload): Promise<{ ok: boolean; error
   console.log(`[EMAIL] Treść:\n${payload.text}`);
   console.log("=".repeat(60));
 
-  // --- PRZYKŁAD PRODUKCYJNY Z RESEND (odkomentować i skonfigurować RESEND_API_KEY): ---
-  // const res = await fetch("https://api.resend.com/emails", {
-  //   method: "POST",
-  //   headers: {
-  //     Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-  //     "Content-Type": "application/json",
-  //   },
-  //   body: JSON.stringify({
-  //     from: "Studio Paznokci <rezerwacje@twojadomena.pl>",
-  //     to: payload.to,
-  //     subject: payload.subject,
-  //     html: payload.html,
-  //   }),
-  // });
-  // if (!res.ok) return { ok: false, error: await res.text() };
+  // --- PRZYKŁAD PRODUKCYJNY Z RESEND ---
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Studio Paznokci <onboarding@resend.dev>",
+      to: payload.to,
+      subject: payload.subject,
+      html: payload.html,
+    }),
+  });
+  if (!res.ok) return { ok: false, error: await res.text() };
 
   return { ok: true };
 }

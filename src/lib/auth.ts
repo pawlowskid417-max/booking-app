@@ -5,6 +5,10 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE = "panel_session";
 const SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("CRITICAL: JWT_SECRET environment variable is missing in production!");
+}
+
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");

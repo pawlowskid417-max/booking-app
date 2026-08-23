@@ -33,6 +33,7 @@ export default function BookingWizard() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
+  const [gotcha, setGotcha] = useState("");
 
   const [confirmation, setConfirmation] = useState<{
     date: string;
@@ -112,6 +113,7 @@ export default function BookingWizard() {
           clientEmail: email,
           clientPhone: phone || undefined,
           note: note || undefined,
+          _gotcha: gotcha,
         }),
       });
       const data = await res.json();
@@ -420,6 +422,19 @@ export default function BookingWizard() {
                 className="input min-h-[80px]"
               />
             </Field>
+
+            {/* HONEYPOT */}
+            <div style={{ display: "none" }} aria-hidden="true">
+              <label htmlFor="website">Strona internetowa</label>
+              <input
+                id="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={gotcha}
+                onChange={(e) => setGotcha(e.target.value)}
+              />
+            </div>
 
             <button
               type="submit"
