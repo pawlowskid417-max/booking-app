@@ -166,6 +166,20 @@ model GalleryImage {
 }
 
 // ------------------------------------------------------------
+// OPINIE KLIENTÓW
+// ------------------------------------------------------------
+model Review {
+  id        String   @id @default(cuid())
+  name      String
+  rating    Int      // 1-5
+  content   String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+
+// ------------------------------------------------------------
 // REZERWACJE
 // status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW"
 // ------------------------------------------------------------

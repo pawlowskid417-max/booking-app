@@ -36,6 +36,7 @@ export default function PanelNav() {
           { href: "/panel/uslugi", label: "Usługi" },
           { href: "/panel/pracownicy", label: "Pracownicy" },
           { href: "/panel/galeria", label: "Galeria" },
+          { href: "/panel/opinie", label: "Opinie" },
           { href: "/panel/ustawienia", label: "Ustawienia" },
         ]
       : []),

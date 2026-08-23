@@ -5,11 +5,12 @@ import { formatPrice, formatDurationMin } from "@/lib/types";
 import AnimatedSection from "@/components/AnimatedSection";
 import GalleryClientSection from "@/components/GalleryClientSection";
 import PixelBlast from "@/components/PixelBlast";
+import ReviewsClientSection from "@/components/ReviewsClientSection";
 
 export const revalidate = 60; // Odświeżaj stronę w tle co maksymalnie 60 sekund (ISR)
 
 export default async function HomePage() {
-  const [services, employees, settings, galleryImages] = await Promise.all([
+  const [services, employees, settings, galleryImages, reviews] = await Promise.all([
     db.service.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: "asc" },
@@ -23,6 +24,11 @@ export default async function HomePage() {
     }),
     db.galleryImage.findMany({
       orderBy: { order: "asc" }
+    }),
+    db.review.findMany({
+      where: { approved: true },
+      orderBy: { createdAt: "desc" },
+      take: 6
     })
   ]);
 
@@ -173,6 +179,9 @@ export default async function HomePage() {
       {galleryImages.length > 0 && (
         <GalleryClientSection images={galleryImages} />
       )}
+
+      {/* OPINIE */}
+      <ReviewsClientSection reviews={reviews} />
 
       {/* CTA + STOPKA */}
       <section className="max-w-5xl mx-auto px-6 py-24 text-center">
