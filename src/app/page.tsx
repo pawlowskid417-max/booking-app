@@ -39,7 +39,7 @@ export default async function HomePage() {
     <main className="flex-1">
       {/* NAVBAR */}
       <header className="fixed w-full top-6 left-1/2 -translate-x-1/2 z-50 px-4 max-w-5xl">
-        <div className="bg-[#1a1a1a]/70 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center justify-between shadow-2xl">
+        <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center justify-between shadow-2xl">
           <span className="font-display text-xl text-white font-medium tracking-wide">
             {settings.salonName}
           </span>
