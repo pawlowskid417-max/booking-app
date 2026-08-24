@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tylko właściciel może dodawać usługi" }, { status: 403 });
   }
 
-  const { name, description, durationMin, priceCents } = await req.json();
+  const { name, description, durationMin, priceCents, category } = await req.json();
 
   if (!name?.trim() || !durationMin || !priceCents) {
     return NextResponse.json(
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       id: randomUUID(),
       name: name.trim(),
       description: description?.trim() || null,
+      category: category?.trim() || "Inne",
       durationMin,
       priceCents,
       isActive: true,

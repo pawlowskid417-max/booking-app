@@ -12,6 +12,7 @@ export default function UslugiPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Manicure");
   const [durationMin, setDurationMin] = useState(60);
   const [priceZl, setPriceZl] = useState("");
   const [adding, setAdding] = useState(false);
@@ -37,12 +38,13 @@ export default function UslugiPage() {
     const res = await fetch("/api/panel/services", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, durationMin, priceCents }),
+      body: JSON.stringify({ name, description, category, durationMin, priceCents }),
     });
 
     if (res.ok) {
       setName("");
       setDescription("");
+      setCategory("Manicure");
       setDurationMin(60);
       setPriceZl("");
       load();
@@ -85,7 +87,10 @@ export default function UslugiPage() {
               }`}
             >
               <div>
-                <p className="font-medium">{s.name}</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-[var(--accent-light)] text-[var(--accent-dark)] px-2 py-0.5 rounded text-xs font-semibold">{s.category}</span>
+                  <p className="font-medium">{s.name}</p>
+                </div>
                 {s.description && <p className="text-sm text-[var(--muted)]">{s.description}</p>}
                 <p className="text-xs text-[var(--muted)] mt-0.5">
                   {formatDurationMin(s.durationMin)} · {formatPrice(s.priceCents)}
@@ -107,6 +112,10 @@ export default function UslugiPage() {
             <label className="block">
               <span className="text-sm font-medium">Nazwa</span>
               <input value={name} onChange={(e) => setName(e.target.value)} className="input" />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium">Kategoria</span>
+              <input value={category} onChange={(e) => setCategory(e.target.value)} className="input" placeholder="np. Manicure, Pedicure, Inne" />
             </label>
             <label className="block">
               <span className="text-sm font-medium">Opis (opcjonalnie)</span>

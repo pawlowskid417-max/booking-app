@@ -7,6 +7,7 @@ import CircularGalleryClientSection from "@/components/CircularGalleryClientSect
 import GalleryClientSection from "@/components/GalleryClientSection";
 import PixelBlast from "@/components/PixelBlast";
 import ReviewsClientSection from "@/components/ReviewsClientSection";
+import ServicesTabsClient from "@/components/ServicesTabsClient";
 
 export const revalidate = 60; // Odświeżaj stronę w tle co maksymalnie 60 sekund (ISR)
 
@@ -114,35 +115,14 @@ export default async function HomePage() {
       </section>
 
       {/* USŁUGI */}
-      <section className="snap-start max-w-5xl mx-auto px-6 py-20">
+      <section className="snap-start min-h-[100svh] w-full flex flex-col justify-center max-w-5xl mx-auto px-6 py-20 relative">
         <AnimatedSection>
-          <h2 className="font-display text-3xl text-[var(--foreground)] mb-10 text-center">
+          <h2 className="font-display text-4xl text-[var(--foreground)] mb-12 text-center">
             Nasze usługi
           </h2>
         </AnimatedSection>
         
-        <div className="grid sm:grid-cols-2 gap-5">
-          {services.map((s, i) => (
-            <AnimatedSection key={s.id} delay={i * 0.1}>
-              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 flex flex-col h-full hover:border-[var(--accent)] transition-colors duration-300">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-medium text-lg text-[var(--foreground)]">{s.name}</h3>
-                  <span className="text-[var(--foreground)] font-display font-medium text-lg whitespace-nowrap">
-                    {formatPrice(s.priceCents)}
-                  </span>
-                </div>
-                {s.description && (
-                  <p className="text-sm text-[var(--muted)] mt-2 leading-relaxed">{s.description}</p>
-                )}
-                <div className="mt-auto pt-4">
-                  <span className="text-xs text-[var(--muted)] bg-[var(--accent-light)] px-3 py-1.5 rounded-full inline-block">
-                    ⏱ {formatDurationMin(s.durationMin)}
-                  </span>
-                </div>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
+        <ServicesTabsClient services={services} />
       </section>
 
       {/* ZESPÓŁ */}

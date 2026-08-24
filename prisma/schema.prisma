@@ -58,6 +58,7 @@ model Service {
   id           String   @id @default(cuid())
   name         String
   description  String?
+  category     String   @default("Inne")
   durationMin  Int      // czas trwania w minutach — kluczowe dla obliczania slotów
   priceCents   Int      // cena w groszach
   isActive     Boolean  @default(true)
