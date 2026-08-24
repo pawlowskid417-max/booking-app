@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function BookingPage() {
   return (
     <main className="flex-1 bg-[var(--background)]">
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md">
+      <header className="fixed w-full top-0 left-0 z-50 border-b border-[var(--border)]/30 bg-[var(--surface)]/40 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="font-display text-xl text-[var(--accent-dark)]">
             ← Strona główna
@@ -12,7 +12,7 @@ export default function BookingPage() {
         </div>
       </header>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="max-w-3xl mx-auto px-6 pt-32 pb-10">
         <h1 className="font-display text-3xl text-[var(--accent-dark)] mb-2 text-center">
           Zarezerwuj wizytę
         </h1>
