@@ -6,21 +6,21 @@ import PanelLoading from "@/components/PanelLoading";
 import ImageUpload from "@/components/ImageUpload";
 
 interface SettingsData {
-  booking_window_days: number;
-  min_lead_time_hours: number;
-  slot_step_minutes: number;
-  auto_confirm_bookings: number;
-  salon_name: string;
-  salon_phone: string | null;
-  salon_address: string | null;
-  contact_email: string | null;
-  hero_image_url: string | null;
-  instagram_url: string | null;
-  facebook_url: string | null;
+  bookingWindowDays: number;
+  minLeadTimeHours: number;
+  slotStepMinutes: number;
+  autoConfirmBookings: boolean;
+  salonName: string;
+  salonPhone: string | null;
+  salonAddress: string | null;
+  contactEmail: string | null;
+  heroImageUrl: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
   address: string | null;
-  map_url: string | null;
-  map_iframe_url: string | null;
-  opening_hours: string | null;
+  mapUrl: string | null;
+  mapIframeUrl: string | null;
+  openingHours: string | null;
 }
 
 export default function UstawieniaPage() {
@@ -43,21 +43,21 @@ export default function UstawieniaPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        bookingWindowDays: settings.booking_window_days,
-        minLeadTimeHours: settings.min_lead_time_hours,
-        slotStepMinutes: settings.slot_step_minutes,
-        autoConfirmBookings: !!settings.auto_confirm_bookings,
-        salonName: settings.salon_name,
-        salonPhone: settings.salon_phone,
-        salonAddress: settings.salon_address,
-        contactEmail: settings.contact_email,
-        heroImageUrl: settings.hero_image_url,
-        instagramUrl: settings.instagram_url,
-        facebookUrl: settings.facebook_url,
+        bookingWindowDays: settings.bookingWindowDays,
+        minLeadTimeHours: settings.minLeadTimeHours,
+        slotStepMinutes: settings.slotStepMinutes,
+        autoConfirmBookings: !!settings.autoConfirmBookings,
+        salonName: settings.salonName,
+        salonPhone: settings.salonPhone,
+        salonAddress: settings.salonAddress,
+        contactEmail: settings.contactEmail,
+        heroImageUrl: settings.heroImageUrl,
+        instagramUrl: settings.instagramUrl,
+        facebookUrl: settings.facebookUrl,
         address: settings.address,
-        mapUrl: settings.map_url,
-        mapIframeUrl: settings.map_iframe_url,
-        openingHours: settings.opening_hours,
+        mapUrl: settings.mapUrl,
+        mapIframeUrl: settings.mapIframeUrl,
+        openingHours: settings.openingHours,
       }),
     });
 
@@ -95,9 +95,9 @@ export default function UstawieniaPage() {
             <input
               type="number"
               min={1}
-              value={settings.booking_window_days}
+              value={settings.bookingWindowDays ?? ""}
               onChange={(e) =>
-                setSettings({ ...settings, booking_window_days: Number(e.target.value) })
+                setSettings({ ...settings, bookingWindowDays: Number(e.target.value) })
               }
               className="input"
             />
@@ -111,9 +111,9 @@ export default function UstawieniaPage() {
             <input
               type="number"
               min={0}
-              value={settings.min_lead_time_hours}
+              value={settings.minLeadTimeHours ?? ""}
               onChange={(e) =>
-                setSettings({ ...settings, min_lead_time_hours: Number(e.target.value) })
+                setSettings({ ...settings, minLeadTimeHours: Number(e.target.value) })
               }
               className="input"
             />
@@ -125,9 +125,9 @@ export default function UstawieniaPage() {
           <label className="block mb-4">
             <span className="text-sm font-medium">Krok siatki godzin (minuty)</span>
             <select
-              value={settings.slot_step_minutes}
+              value={settings.slotStepMinutes ?? 30}
               onChange={(e) =>
-                setSettings({ ...settings, slot_step_minutes: Number(e.target.value) })
+                setSettings({ ...settings, slotStepMinutes: Number(e.target.value) })
               }
               className="input"
             >
@@ -140,10 +140,11 @@ export default function UstawieniaPage() {
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={!!settings.auto_confirm_bookings}
+              checked={!!settings.autoConfirmBookings}
               onChange={(e) =>
-                setSettings({ ...settings, auto_confirm_bookings: e.target.checked ? 1 : 0 })
+                setSettings({ ...settings, autoConfirmBookings: e.target.checked })
               }
+              className="w-4 h-4"
             />
             <span className="text-sm">
               Automatycznie potwierdzaj nowe rezerwacje (bez ręcznej akceptacji)
@@ -157,40 +158,40 @@ export default function UstawieniaPage() {
           <label className="block mb-3">
             <span className="text-sm font-medium">Nazwa salonu</span>
             <input
-              value={settings.salon_name}
-              onChange={(e) => setSettings({ ...settings, salon_name: e.target.value })}
+              value={settings.salonName || ""}
+              onChange={(e) => setSettings({ ...settings, salonName: e.target.value })}
               className="input"
             />
           </label>
           <label className="block mb-3">
             <span className="text-sm font-medium">Adres</span>
             <input
-              value={settings.salon_address ?? ""}
-              onChange={(e) => setSettings({ ...settings, salon_address: e.target.value })}
+              value={settings.salonAddress ?? ""}
+              onChange={(e) => setSettings({ ...settings, salonAddress: e.target.value })}
               className="input"
             />
           </label>
           <label className="block mb-3">
             <span className="text-sm font-medium">Telefon</span>
             <input
-              value={settings.salon_phone ?? ""}
-              onChange={(e) => setSettings({ ...settings, salon_phone: e.target.value })}
+              value={settings.salonPhone || ""}
+              onChange={(e) => setSettings({ ...settings, salonPhone: e.target.value })}
               className="input"
             />
           </label>
           <label className="block mb-3">
             <span className="text-sm font-medium">Email kontaktowy</span>
             <input
-              value={settings.contact_email ?? ""}
-              onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
+              value={settings.contactEmail || ""}
+              onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
               className="input"
             />
           </label>
           <label className="block mb-3">
             <span className="text-sm font-medium">Link do wizytówki z mapą (Google Maps - przycisk Wyznacz Trasę)</span>
             <input
-              value={settings.map_url ?? ""}
-              onChange={(e) => setSettings({ ...settings, map_url: e.target.value })}
+              value={settings.mapUrl || ""}
+              onChange={(e) => setSettings({ ...settings, mapUrl: e.target.value })}
               className="input"
               placeholder="np. https://maps.app.goo.gl/..."
             />
@@ -198,33 +199,33 @@ export default function UstawieniaPage() {
           <label className="block mb-3">
             <span className="text-sm font-medium">Link osadzenia mapy w stopce (Iframe Src z Google Maps)</span>
             <input
-              value={settings.map_iframe_url ?? ""}
-              onChange={(e) => setSettings({ ...settings, map_iframe_url: e.target.value })}
+              value={settings.mapIframeUrl || ""}
+              onChange={(e) => setSettings({ ...settings, mapIframeUrl: e.target.value })}
               className="input"
-              placeholder="np. https://www.google.com/maps/embed?pb=..."
+              placeholder='<iframe src="https://www.google.com/maps/embed?...'
             />
           </label>
           <label className="block mb-3">
             <span className="text-sm font-medium">Link do Instagrama</span>
             <input
-              value={settings.instagram_url ?? ""}
-              onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value })}
+              value={settings.instagramUrl || ""}
+              onChange={(e) => setSettings({ ...settings, instagramUrl: e.target.value })}
               className="input"
             />
           </label>
           <label className="block mb-3">
             <span className="text-sm font-medium">Link do Facebooka</span>
             <input
-              value={settings.facebook_url ?? ""}
-              onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value })}
+              value={settings.facebookUrl ?? ""}
+              onChange={(e) => setSettings({ ...settings, facebookUrl: e.target.value })}
               className="input"
             />
           </label>
           <label className="block">
             <span className="text-sm font-medium">Godziny otwarcia (tekst)</span>
             <textarea
-              value={settings.opening_hours ?? ""}
-              onChange={(e) => setSettings({ ...settings, opening_hours: e.target.value })}
+              value={settings.openingHours ?? ""}
+              onChange={(e) => setSettings({ ...settings, openingHours: e.target.value })}
               className="input min-h-[100px]"
               placeholder="Pon-Pt: 9:00 - 18:00&#10;Sob: 9:00 - 14:00"
             />
