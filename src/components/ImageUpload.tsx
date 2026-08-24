@@ -46,7 +46,6 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
       const newBlob = await upload(file.name, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
-        multipart: true, // Przywracamy, bo CSP blokowało, a nie to
         onUploadProgress: (progressEvent) => {
           setProgress(Math.round(progressEvent.percentage));
         }
