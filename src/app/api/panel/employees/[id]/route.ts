@@ -65,9 +65,13 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    const emp = await db.employee.findUnique({ where: { id } });
     await db.employee.delete({
       where: { id }
     });
+    if (emp && emp.userId) {
+      await db.user.delete({ where: { id: emp.userId } });
+    }
     return NextResponse.json({ success: true });
   } catch (error: any) {
     // Jeśli pracownik ma rezerwacje (onDelete: Restrict), Prisma wyrzuci błąd P2003.

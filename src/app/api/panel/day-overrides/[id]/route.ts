@@ -7,7 +7,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Brak autoryzacji" }, { status: 401 });
+  if (!user || user.role !== "OWNER") {
+    return NextResponse.json({ error: "Brak autoryzacji" }, { status: 401 });
+  }
 
   const { id } = await params;
   await db.dayOverride.delete({

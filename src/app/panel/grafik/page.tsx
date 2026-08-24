@@ -195,6 +195,7 @@ export default function GrafikPage() {
                     <input
                       type="checkbox"
                       checked={h.active}
+                      disabled={user?.role === "EMPLOYEE"}
                       onChange={(e) =>
                         setHours((prev) => ({
                           ...prev,
@@ -209,6 +210,7 @@ export default function GrafikPage() {
                       <input
                         type="time"
                         value={h.start}
+                        disabled={user?.role === "EMPLOYEE"}
                         onChange={(e) =>
                           setHours((prev) => ({ ...prev, [wd.value]: { ...h, start: e.target.value } }))
                         }
@@ -218,6 +220,7 @@ export default function GrafikPage() {
                       <input
                         type="time"
                         value={h.end}
+                        disabled={user?.role === "EMPLOYEE"}
                         onChange={(e) =>
                           setHours((prev) => ({ ...prev, [wd.value]: { ...h, end: e.target.value } }))
                         }
@@ -229,13 +232,15 @@ export default function GrafikPage() {
               );
             })}
           </div>
-          <button
-            onClick={saveSchedule}
-            disabled={saving || !selectedEmployeeId}
-            className="mt-5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-full"
-          >
-            {saving ? "Zapisuję..." : "Zapisz grafik"}
-          </button>
+          {user?.role === "OWNER" && (
+            <button
+              onClick={saveSchedule}
+              disabled={saving || !selectedEmployeeId}
+              className="mt-5 bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-full"
+            >
+              {saving ? "Zapisuję..." : "Zapisz grafik"}
+            </button>
+          )}
         </section>
 
         <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5">
@@ -255,12 +260,14 @@ export default function GrafikPage() {
                   {o.type === "DAY_OFF" ? "dzień wolny" : `godz. ${o.startTime}–${o.endTime}`}
                   {o.note && <span className="text-[var(--muted)]"> ({o.note})</span>}
                 </div>
-                <button
-                  onClick={() => removeOverride(o.id)}
-                  className="text-xs text-[var(--muted)] hover:text-red-600"
-                >
-                  Usuń
-                </button>
+                {user?.role === "OWNER" && (
+                  <button
+                    onClick={() => removeOverride(o.id)}
+                    className="text-xs text-[var(--muted)] hover:text-red-600"
+                  >
+                    Usuń
+                  </button>
+                )}
               </div>
             ))}
             {overrides.length === 0 && (
@@ -268,66 +275,68 @@ export default function GrafikPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-end gap-3 border-t border-[var(--border)] pt-4">
-            <label className="block">
-              <span className="text-xs font-medium">Data</span>
-              <input
-                type="date"
-                value={newOverrideDate}
-                onChange={(e) => setNewOverrideDate(e.target.value)}
-                className="input"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs font-medium">Typ</span>
-              <select
-                value={newOverrideType}
-                onChange={(e) => setNewOverrideType(e.target.value)}
-                className="input"
+          {user?.role === "OWNER" && (
+            <div className="flex flex-wrap items-end gap-3 border-t border-[var(--border)] pt-4">
+              <label className="block">
+                <span className="text-xs font-medium">Data</span>
+                <input
+                  type="date"
+                  value={newOverrideDate}
+                  onChange={(e) => setNewOverrideDate(e.target.value)}
+                  className="input"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium">Typ</span>
+                <select
+                  value={newOverrideType}
+                  onChange={(e) => setNewOverrideType(e.target.value)}
+                  className="input"
+                >
+                  <option value="DAY_OFF">Dzień wolny</option>
+                  <option value="CUSTOM_HOURS">Zmienione godziny</option>
+                </select>
+              </label>
+              {newOverrideType === "CUSTOM_HOURS" && (
+                <>
+                  <label className="block">
+                    <span className="text-xs font-medium">Od</span>
+                    <input
+                      type="time"
+                      value={newOverrideStart}
+                      onChange={(e) => setNewOverrideStart(e.target.value)}
+                      className="input w-28"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium">Do</span>
+                    <input
+                      type="time"
+                      value={newOverrideEnd}
+                      onChange={(e) => setNewOverrideEnd(e.target.value)}
+                      className="input w-28"
+                    />
+                  </label>
+                </>
+              )}
+              <label className="block flex-1 min-w-[140px]">
+                <span className="text-xs font-medium">Notatka (opcjonalnie)</span>
+                <input
+                  value={newOverrideNote}
+                  onChange={(e) => setNewOverrideNote(e.target.value)}
+                  className="input"
+                  placeholder="np. Urlop"
+                />
+              </label>
+              <button
+                onClick={addOverride}
+                disabled={!newOverrideDate}
+                className="bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-full"
               >
-                <option value="DAY_OFF">Dzień wolny</option>
-                <option value="CUSTOM_HOURS">Zmienione godziny</option>
-              </select>
-            </label>
-            {newOverrideType === "CUSTOM_HOURS" && (
-              <>
-                <label className="block">
-                  <span className="text-xs font-medium">Od</span>
-                  <input
-                    type="time"
-                    value={newOverrideStart}
-                    onChange={(e) => setNewOverrideStart(e.target.value)}
-                    className="input w-28"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-medium">Do</span>
-                  <input
-                    type="time"
-                    value={newOverrideEnd}
-                    onChange={(e) => setNewOverrideEnd(e.target.value)}
-                    className="input w-28"
-                  />
-                </label>
-              </>
-            )}
-            <label className="block flex-1 min-w-[140px]">
-              <span className="text-xs font-medium">Notatka (opcjonalnie)</span>
-              <input
-                value={newOverrideNote}
-                onChange={(e) => setNewOverrideNote(e.target.value)}
-                className="input"
-                placeholder="np. Urlop"
-              />
-            </label>
-            <button
-              onClick={addOverride}
-              disabled={!newOverrideDate}
-              className="bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-full"
-            >
-              Dodaj
-            </button>
-          </div>
+                Dodaj
+              </button>
+            </div>
+          )}
         </section>
       </>
         )}

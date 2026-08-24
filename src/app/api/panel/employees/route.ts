@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, hashPassword } from "@/lib/auth";
 import { randomUUID } from "crypto";
 
 export async function GET() {
@@ -26,10 +26,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tylko właściciel może dodawać pracowników" }, { status: 403 });
   }
 
-  const { firstName, lastName, bio, photoUrl, serviceIds } = await req.json();
+  const { firstName, lastName, bio, photoUrl, serviceIds, email, password } = await req.json();
 
-  if (!firstName?.trim() || !lastName?.trim()) {
-    return NextResponse.json({ error: "Imię i nazwisko są wymagane" }, { status: 400 });
+  if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !password?.trim()) {
+    return NextResponse.json({ error: "Imię, nazwisko, email i hasło są wymagane" }, { status: 400 });
+  }
+
+  // Sprawdź czy użytkownik o tym emailu już istnieje
+  const existingUser = await db.user.findUnique({
+    where: { email: email.trim().toLowerCase() }
+  });
+
+  if (existingUser) {
+    return NextResponse.json({ error: "Konto z takim adresem email już istnieje" }, { status: 400 });
   }
 
   const maxOrderRec = await db.employee.aggregate({
@@ -37,22 +46,38 @@ export async function POST(req: NextRequest) {
   });
   const maxOrder = maxOrderRec._max.displayOrder ?? -1;
 
-  const employee = await db.employee.create({
-    data: {
-      id: randomUUID(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      photoUrl: photoUrl || null,
-      bio: bio?.trim() || null,
-      isActive: true,
-      displayOrder: maxOrder + 1,
-      services: Array.isArray(serviceIds) ? {
-        create: serviceIds.map((sid: string) => ({
-          serviceId: sid
-        }))
-      } : undefined
-    }
+  const employeeId = randomUUID();
+  const newUserId = randomUUID();
+
+  // Create both in a transaction
+  await db.$transaction(async (tx) => {
+    await tx.user.create({
+      data: {
+        id: newUserId,
+        email: email.trim().toLowerCase(),
+        passwordHash: hashPassword(password),
+        role: "EMPLOYEE",
+      }
+    });
+
+    await tx.employee.create({
+      data: {
+        id: employeeId,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        photoUrl: photoUrl || null,
+        bio: bio?.trim() || null,
+        isActive: true,
+        displayOrder: maxOrder + 1,
+        userId: newUserId,
+        services: Array.isArray(serviceIds) ? {
+          create: serviceIds.map((sid: string) => ({
+            serviceId: sid
+          }))
+        } : undefined
+      }
+    });
   });
 
-  return NextResponse.json({ success: true, id: employee.id });
+  return NextResponse.json({ success: true, id: employeeId });
 }

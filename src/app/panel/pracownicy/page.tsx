@@ -25,6 +25,8 @@ export default function PracownicyPage() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
@@ -61,12 +63,14 @@ export default function PracownicyPage() {
     const res = await fetch("/api/panel/employees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, bio, photoUrl, serviceIds: selectedServiceIds }),
+      body: JSON.stringify({ firstName, lastName, bio, photoUrl, serviceIds: selectedServiceIds, email, password }),
     });
 
     if (res.ok) {
       setFirstName("");
       setLastName("");
+      setEmail("");
+      setPassword("");
       setBio("");
       setPhotoUrl("");
       setSelectedServiceIds([]);
@@ -213,6 +217,16 @@ export default function PracownicyPage() {
                 <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="input" />
               </label>
             </div>
+            <div className="flex gap-4">
+              <label className="block flex-1">
+                <span className="text-sm font-medium">Email (do logowania)</span>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" placeholder="pracownik@salon.pl" />
+              </label>
+              <label className="block flex-1">
+                <span className="text-sm font-medium">Hasło startowe</span>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input" placeholder="min. 6 znaków" />
+              </label>
+            </div>
             <ImageUpload
               label="Zdjęcie pracownika (1:1)"
               value={photoUrl}
@@ -247,7 +261,7 @@ export default function PracownicyPage() {
             </div>
             <button
               onClick={addEmployee}
-              disabled={adding || !firstName.trim() || !lastName.trim()}
+              disabled={adding || !firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()}
               className="bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 rounded-full"
             >
               {adding ? "Dodaję..." : "Dodaj pracownika"}

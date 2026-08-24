@@ -32,7 +32,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Nieprawidłowe dane" }, { status: 400 });
   }
 
-  if (user.role !== "OWNER" && user.employeeId !== employeeId) {
+  if (user.role !== "OWNER") {
     return NextResponse.json({ error: "Brak dostępu" }, { status: 403 });
   }
 
