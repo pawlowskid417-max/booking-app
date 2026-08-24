@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
               "font-src 'self' https://fonts.gstatic.com data:;",
               "img-src 'self' data: blob: https:;",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com https://vitals.vercel-insights.com;",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com https://vitals.vercel-insights.com https://vercel.com https://*.public.blob.vercel-storage.com;",
               "frame-ancestors 'none';",
               "form-action 'self';",
               "base-uri 'self';",
