@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { preload } from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +24,12 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      
+      preload("/api/panel/me", fetcher);
+      preload("/api/panel/services", fetcher);
+      preload("/api/panel/categories", fetcher);
+      preload("/api/panel/employees", fetcher);
+
       router.push("/panel/dashboard");
       router.refresh();
     } catch (e) {

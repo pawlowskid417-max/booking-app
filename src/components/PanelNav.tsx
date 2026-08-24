@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import useSWR from "swr";
+import useSWR, { preload } from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 interface CurrentUser {
   id: string;
@@ -27,6 +28,25 @@ export default function PanelNav() {
     await fetch("/api/panel/logout", { method: "POST" });
     router.push("/panel/login");
   }
+
+  const handlePrefetch = (href: string) => {
+    switch (href) {
+      case "/panel/uslugi":
+        preload("/api/panel/services", fetcher);
+        preload("/api/panel/categories", fetcher);
+        break;
+      case "/panel/kategorie":
+        preload("/api/panel/categories", fetcher);
+        break;
+      case "/panel/pracownicy":
+        preload("/api/panel/employees", fetcher);
+        preload("/api/panel/services", fetcher);
+        break;
+      case "/panel/grafik":
+        preload("/api/panel/employees", fetcher);
+        break;
+    }
+  };
 
   const links = [
     { href: "/panel/dashboard", label: "Rezerwacje" },
@@ -54,6 +74,7 @@ export default function PanelNav() {
               <Link
                 key={l.href}
                 href={l.href}
+                onMouseEnter={() => handlePrefetch(l.href)}
                 className={`text-sm px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
                   pathname === l.href
                     ? "bg-[var(--accent-light)] text-[var(--accent-dark)] font-medium"
