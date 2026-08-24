@@ -9,12 +9,18 @@ export async function GET() {
 
   const employees = await db.employee.findMany({
     orderBy: { displayOrder: "asc" },
-    include: { services: true }
+    include: { 
+      services: true,
+      _count: {
+        select: { appointments: true }
+      }
+    }
   });
 
   const withServices = employees.map((e) => ({
     ...e,
     serviceIds: e.services.map((l) => l.serviceId),
+    appointmentCount: e._count.appointments,
   }));
 
   return NextResponse.json({ employees: withServices });

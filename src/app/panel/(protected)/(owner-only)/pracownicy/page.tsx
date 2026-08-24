@@ -14,6 +14,7 @@ interface EmployeeRow {
   bio: string | null;
   isActive: boolean;
   serviceIds: string[];
+  appointmentCount?: number;
 }
 
 export default function PracownicyPage() {
@@ -106,6 +107,10 @@ export default function PracownicyPage() {
   }
 
   function promptDelete(e: EmployeeRow) {
+    if (e.appointmentCount && e.appointmentCount > 0) {
+      alert(`Nie można usunąć pracownika, ponieważ ma przypisane wizyty (${e.appointmentCount}). Użyj przycisku "Dezaktywuj", aby ukryć pracownika zachowując historię wizyt.`);
+      return;
+    }
     setConfirmDelete({ isOpen: true, id: e.id, name: `${e.firstName} ${e.lastName}` });
   }
 
@@ -164,7 +169,12 @@ export default function PracownicyPage() {
                   <button
                     onClick={() => promptDelete(e)}
                     disabled={deletingId === e.id}
-                    className="text-xs border border-red-200 text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors disabled:opacity-50"
+                    title={e.appointmentCount && e.appointmentCount > 0 ? "Nie można usunąć pracownika z historią wizyt. Użyj Dezaktywuj." : ""}
+                    className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors disabled:opacity-50 ${
+                      e.appointmentCount && e.appointmentCount > 0
+                        ? "border border-gray-200 text-gray-400 cursor-not-allowed"
+                        : "border border-red-200 text-red-500 hover:bg-red-50"
+                    }`}
                   >
                     {deletingId === e.id ? "Usuwam..." : "Usuń"}
                   </button>

@@ -291,21 +291,7 @@ export default function BookingWizard() {
             <h2 className="font-display text-xl mb-4 text-center shrink-0">Wybierz osobę</h2>
             {employeesLoading && <p className="text-center text-[var(--muted)] py-6 shrink-0">Ładowanie...</p>}
             <div className="space-y-3 flex-1 overflow-y-auto px-1 py-1">
-              {!employeesLoading && employees.length > 1 && (
-                <button
-                  onClick={() => setSelectedEmployee(employees[0])}
-                  className={`w-full text-left border rounded-2xl p-4 transition-colors ${
-                    selectedEmployee?.id === employees[0].id
-                      ? "border-[var(--accent)] bg-[var(--accent-light)]"
-                      : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--accent)]"
-                  }`}
-                >
-                  <h3 className="font-medium">Dowolna dostępna osoba</h3>
-                  <p className="text-sm text-[var(--muted)]">
-                    Pokażemy najbliższy wolny termin spośród całego zespołu
-                  </p>
-                </button>
-              )}
+
               {!employeesLoading &&
                 employees.map((e) => (
                   <button

@@ -67,10 +67,16 @@ export async function DELETE(
   try {
     const emp = await db.employee.findUnique({ where: { id } });
 
-    // Usuń wszystkie powiązane wizyty, aby można było usunąć pracownika całkowicie z bazy
-    await db.appointment.deleteMany({
+    const appointmentCount = await db.appointment.count({
       where: { employeeId: id }
     });
+
+    if (appointmentCount > 0) {
+      return NextResponse.json(
+        { error: `Pracownik ma przypisane wizyty (${appointmentCount}). Użyj funkcji Dezaktywuj, aby usunąć go z widoku, zachowując historię.` },
+        { status: 400 }
+      );
+    }
 
     await db.employee.delete({
       where: { id }

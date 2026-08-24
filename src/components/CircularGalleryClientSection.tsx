@@ -14,7 +14,7 @@ export default function CircularGalleryClientSection({ images }: { images: Galle
 
   const items = images.map((img) => ({
     image: img.url,
-    text: "Realizacja", // Zastąpienie alt tekstem na obręczy galerii
+    text: img.alt || "Realizacja", // Używa zapisanego opisu zdjęcia lub fallbacku
   }));
 
   return (
@@ -25,7 +25,7 @@ export default function CircularGalleryClientSection({ images }: { images: Galle
           <p className="text-center text-[var(--muted)] mt-4">Zapraszamy do obejrzenia naszych prac</p>
         </AnimatedSection>
       </div>
-      <div style={{ height: "600px", position: "relative" }} className="w-full max-w-[100vw] overflow-hidden pointer-events-none">
+      <div style={{ height: "600px", position: "relative" }} className="w-full max-w-[100vw] overflow-hidden">
         <CircularGallery
           items={items}
           bend={3}

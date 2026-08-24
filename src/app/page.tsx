@@ -179,9 +179,9 @@ export default async function HomePage() {
           <div className="border-t border-[var(--border)] pt-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm text-[var(--muted)] text-left items-start">
             <div>
               <h4 className="font-display text-lg text-[var(--foreground)] mb-3">Kontakt</h4>
-              <p className="mb-1">{settings.salonAddress}</p>
-              <p className="mb-1">Tel: {settings.salonPhone}</p>
-              <p>{settings.contactEmail}</p>
+              <p className="mb-1">{settings.salonAddress || "Brak adresu"}</p>
+              <p className="mb-1">Tel: {settings.salonPhone || "Brak telefonu"}</p>
+              <p>{settings.contactEmail || "Brak e-maila"}</p>
               {settings.mapUrl && (
                 <a href={settings.mapUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-[var(--accent-dark)] hover:underline font-medium">
                   Wyznacz trasę →
@@ -236,17 +236,23 @@ export default async function HomePage() {
             </div>
 
             {/* MAPA */}
-            <div className="w-full h-[200px] md:h-full min-h-[150px] rounded-xl overflow-hidden shadow-sm border border-[var(--border)]">
-              <iframe 
-                src={settings.mapIframeUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d156388.35438505525!2d20.896128698506822!3d52.23306532087541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669a869f01%3A0x72f0be2a88ead3fc!2sWarszawa!5e0!3m2!1spl!2spl!4v1700000000000!5m2!1spl!2spl"} 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen={false} 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
+            {settings.mapIframeUrl ? (
+              <div className="w-full h-[200px] md:h-full min-h-[150px] rounded-xl overflow-hidden shadow-sm border border-[var(--border)]">
+                <iframe 
+                  src={settings.mapIframeUrl} 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+            ) : (
+              <div className="w-full h-[200px] md:h-full min-h-[150px] rounded-xl overflow-hidden shadow-sm border border-[var(--border)] bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                Brak mapy
+              </div>
+            )}
           </div>
         </AnimatedSection>
       </section>
