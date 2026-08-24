@@ -41,7 +41,7 @@ export default function GrafikPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
   const [hours, setHours] = useState<Record<number, { active: boolean; start: string; end: string }>>({});
   const [overrides, setOverrides] = useState<DayOverrideRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [pageReady, setPageReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -76,10 +76,10 @@ export default function GrafikPage() {
   const loadSchedule = useCallback(() => {
     if (!initialLoaded) return;
     if (!selectedEmployeeId) {
-      setLoading(false);
+      setPageReady(true);
       return;
     }
-    setLoading(true);
+    
     Promise.all([
       fetch(`/api/panel/working-hours?employeeId=${selectedEmployeeId}`).then(r => r.json()),
       fetch(`/api/panel/day-overrides?employeeId=${selectedEmployeeId}`).then(r => r.json())
@@ -94,7 +94,7 @@ export default function GrafikPage() {
       setHours(map);
       setOverrides(od.overrides ?? []);
     }).finally(() => {
-      setLoading(false);
+      setPageReady(true);
     });
   }, [selectedEmployeeId, initialLoaded]);
 
@@ -351,7 +351,7 @@ export default function GrafikPage() {
       <div className="max-w-3xl mx-auto px-6 py-8">
         <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6">Grafik pracy</h1>
 
-        {loading ? (
+        {!pageReady ? (
           <PanelLoading />
         ) : (
           <>
