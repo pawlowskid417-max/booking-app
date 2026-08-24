@@ -183,7 +183,7 @@ export default async function HomePage() {
         </AnimatedSection>
 
         <AnimatedSection delay={0.2}>
-          <div className="mt-20 pt-10 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--muted)] text-left">
+          <div className="mt-20 pt-10 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-4 gap-8 text-sm text-[var(--muted)] text-left items-start">
             <div>
               <h4 className="font-display text-lg text-[var(--foreground)] mb-3">Kontakt</h4>
               <p className="mb-1">{settings.salonAddress}</p>
@@ -217,21 +217,19 @@ export default async function HomePage() {
                 <p>Brak podanego linku.</p>
               )}
             </div>
-          </div>
-        </AnimatedSection>
 
-        {/* PRZYKŁADOWA MAPA */}
-        <AnimatedSection delay={0.4}>
-          <div className="mt-16 w-full rounded-2xl overflow-hidden shadow-sm border border-[var(--border)] h-[300px] md:h-[400px]">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d156388.35438505525!2d20.896128698506822!3d52.23306532087541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669a869f01%3A0x72f0be2a88ead3fc!2sWarszawa!5e0!3m2!1spl!2spl!4v1700000000000!5m2!1spl!2spl" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen={false} 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
+            {/* MAPA */}
+            <div className="w-full h-[200px] md:h-full min-h-[150px] rounded-xl overflow-hidden shadow-sm border border-[var(--border)]">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d156388.35438505525!2d20.896128698506822!3d52.23306532087541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669a869f01%3A0x72f0be2a88ead3fc!2sWarszawa!5e0!3m2!1spl!2spl!4v1700000000000!5m2!1spl!2spl" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={false} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
           </div>
         </AnimatedSection>
       </section>
