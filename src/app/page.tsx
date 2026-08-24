@@ -53,7 +53,7 @@ export default async function HomePage() {
       </header>
 
       {/* HERO */}
-      <section className="relative bg-[var(--hero-bg)] overflow-hidden min-h-[100svh] flex items-center justify-center">
+      <section className="snap-start relative bg-[var(--hero-bg)] overflow-hidden min-h-[100svh] flex items-center justify-center">
         {settings.heroImageUrl && (
           <div className="absolute inset-0 z-0">
             <Image 
@@ -112,7 +112,7 @@ export default async function HomePage() {
       </section>
 
       {/* USŁUGI */}
-      <section className="max-w-5xl mx-auto px-6 py-20">
+      <section className="snap-start max-w-5xl mx-auto px-6 py-20">
         <AnimatedSection>
           <h2 className="font-display text-3xl text-[var(--foreground)] mb-10 text-center">
             Nasze usługi
