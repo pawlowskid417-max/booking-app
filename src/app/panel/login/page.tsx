@@ -50,7 +50,37 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16 bg-[var(--background)]">
+    <main className="flex-1 flex items-center justify-center px-6 py-16 bg-[var(--background)] relative">
+      
+      {loadingState !== "IDLE" && (
+        <div className="fixed inset-0 z-50 bg-[var(--background)]/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-[var(--surface)] p-8 md:p-10 rounded-3xl shadow-2xl shadow-[var(--accent)]/10 border border-[var(--border)] flex flex-col items-center gap-6 max-w-sm w-[90%] text-center animate-in zoom-in-95 duration-500">
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              {/* Tło kółka */}
+              <div className="absolute inset-0 border-4 border-[var(--accent-light)] rounded-full"></div>
+              {/* Animowany spinner */}
+              <div className="absolute inset-0 border-4 border-[var(--accent)] rounded-full border-t-transparent animate-spin"></div>
+              
+              {/* Serce w środku gdy pobiera dane */}
+              <div className={`transition-all duration-500 ${loadingState === "PREPARING" ? "scale-100 opacity-100" : "scale-50 opacity-0"}`}>
+                <div className="w-5 h-5 bg-[var(--accent)] rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="font-display text-xl text-[var(--accent-dark)] transition-all duration-300">
+                {loadingState === "LOGGING_IN" ? "Trwa logowanie" : "Przygotowujemy panel"}
+              </h3>
+              <p className="text-sm text-[var(--muted)] transition-all duration-300">
+                {loadingState === "LOGGING_IN" 
+                  ? "Weryfikacja szyfrowanego połączenia..." 
+                  : "Pobieramy grafik, usługi i rezerwacje..."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-sm w-full">
         <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6 text-center">
           Panel salonu
@@ -91,25 +121,7 @@ export default function LoginPage() {
             disabled={loadingState !== "IDLE"}
             className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-90 disabled:cursor-not-allowed text-white font-medium py-3 rounded-full transition-all duration-300"
           >
-            {loadingState === "IDLE" && "Zaloguj się"}
-            {loadingState === "LOGGING_IN" && (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white/90" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logowanie...
-              </>
-            )}
-            {loadingState === "PREPARING" && (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white/90" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Przygotowywanie panelu...
-              </>
-            )}
+            Zaloguj się
           </button>
         </form>
       </div>
