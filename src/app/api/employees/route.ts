@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const revalidate = 60;
+
 export async function GET(req: NextRequest) {
   const serviceId = req.nextUrl.searchParams.get("serviceId");
 

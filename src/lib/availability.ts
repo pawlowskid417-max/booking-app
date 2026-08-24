@@ -49,7 +49,7 @@ interface Context {
   settings: BookingSettings;
   overrides: DayOverride[];
   workingHours: WorkingHour[];
-  appointments: Appointment[];
+  appointments: { startAt: Date; endAt: Date }[];
 }
 
 function getWorkingWindowForDateFromContext(
@@ -143,6 +143,7 @@ export async function getAvailableSlotsForDay(
         startAt: { lt: dayEndIso },
         endAt: { gt: dayStartIso },
       },
+      select: { startAt: true, endAt: true }
     }),
   ]);
 
@@ -187,6 +188,7 @@ export async function getBookableDaysOverview(
         startAt: { lt: toIso },
         endAt: { gt: fromIso },
       },
+      select: { startAt: true, endAt: true }
     }),
   ]);
 

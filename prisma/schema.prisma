@@ -47,6 +47,7 @@ model Employee {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  @@index([isActive, displayOrder])
   @@map("employees")
 }
 
@@ -68,6 +69,7 @@ model Service {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  @@index([isActive, displayOrder])
   @@map("services")
 }
 
@@ -122,6 +124,7 @@ model DayOverride {
   createdAt  DateTime @default(now())
 
   @@unique([employeeId, date])
+  @@index([type])
   @@map("day_overrides")
 }
 
@@ -162,6 +165,7 @@ model GalleryImage {
   order     Int      @default(0)
   createdAt DateTime @default(now())
 
+  @@index([order])
   @@map("gallery_images")
 }
 
@@ -176,6 +180,7 @@ model Review {
   approved  Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  @@index([approved, createdAt(sort: Desc)])
   @@map("reviews")
 }
 

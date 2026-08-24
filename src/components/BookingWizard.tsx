@@ -5,25 +5,23 @@ import type { Employee, Service } from "@/lib/types";
 import { formatPrice, formatDurationMin, formatDatePL } from "@/lib/types";
 import Stepper, { Step } from "./Stepper";
 
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 interface DayInfo {
   date: string;
   hasSlots: boolean;
 }
 
 export default function BookingWizard() {
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Dane źródłowe
-  const [services, setServices] = useState<Service[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
 
   // Wybory użytkownika
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  const [days, setDays] = useState<DayInfo[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [slots, setSlots] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
@@ -41,45 +39,36 @@ export default function BookingWizard() {
     employeeName: string;
   } | null>(null);
 
-  // ---- Krok 1: pobierz usługi ----
-  useEffect(() => {
-    fetch("/api/services")
-      .then((r) => r.json())
-      .then((d) => setServices(d.services ?? []));
-  }, []);
+  // ---- Pobieranie danych przez SWR ----
+  const { data: servicesData, isLoading: servicesLoading } = useSWR("/api/services", fetcher);
+  const services: Service[] = servicesData?.services ?? [];
 
-  // ---- Krok 2: po wyborze usługi, pobierz pracowników którzy ją wykonują ----
-  useEffect(() => {
-    if (!selectedService) return;
-    setLoading(true);
-    fetch(`/api/employees?serviceId=${selectedService.id}`)
-      .then((r) => r.json())
-      .then((d) => setEmployees(d.employees ?? []))
-      .finally(() => setLoading(false));
-  }, [selectedService]);
+  const { data: employeesData, isLoading: employeesLoading } = useSWR(
+    selectedService ? `/api/employees?serviceId=${selectedService.id}` : null,
+    fetcher
+  );
+  const employees: Employee[] = employeesData?.employees ?? [];
 
-  // ---- Krok 3: po wyborze pracownika, pobierz przegląd dostępnych dni ----
-  useEffect(() => {
-    if (!selectedService || !selectedEmployee) return;
-    setLoading(true);
-    fetch(`/api/availability?employeeId=${selectedEmployee.id}&serviceId=${selectedService.id}`)
-      .then((r) => r.json())
-      .then((d) => setDays(d.days ?? []))
-      .finally(() => setLoading(false));
-  }, [selectedService, selectedEmployee]);
+  const { data: daysData, isLoading: daysLoading } = useSWR(
+    selectedService && selectedEmployee
+      ? `/api/availability?employeeId=${selectedEmployee.id}&serviceId=${selectedService.id}`
+      : null,
+    fetcher
+  );
+  const days: DayInfo[] = daysData?.days ?? [];
 
-  // ---- Po wyborze konkretnego dnia, pobierz godziny ----
+  const { data: slotsData, isLoading: slotsLoading, mutate: revalidateSlots } = useSWR(
+    selectedService && selectedEmployee && selectedDate
+      ? `/api/availability?employeeId=${selectedEmployee.id}&serviceId=${selectedService.id}&date=${selectedDate}`
+      : null,
+    fetcher
+  );
+  const slots: string[] = slotsData?.slots ?? [];
+
+  // Reset time when date changes
   useEffect(() => {
-    if (!selectedService || !selectedEmployee || !selectedDate) return;
-    setLoading(true);
     setSelectedTime(null);
-    fetch(
-      `/api/availability?employeeId=${selectedEmployee.id}&serviceId=${selectedService.id}&date=${selectedDate}`
-    )
-      .then((r) => r.json())
-      .then((d) => setSlots(d.slots ?? []))
-      .finally(() => setLoading(false));
-  }, [selectedService, selectedEmployee, selectedDate]);
+  }, [selectedDate]);
 
   const groupedDays = useMemo(() => {
     const map = new Map<string, DayInfo[]>();
@@ -93,7 +82,7 @@ export default function BookingWizard() {
 
   async function submitBooking() {
     if (!selectedService || !selectedEmployee || !selectedDate || !selectedTime) return;
-    setLoading(true);
+    setIsSubmitting(true);
     setError(null);
 
     try {
@@ -119,13 +108,9 @@ export default function BookingWizard() {
         setError(data.error || "Coś poszło nie tak. Spróbuj ponownie.");
         if (res.status === 409) {
           setSelectedTime(null);
-          fetch(
-            `/api/availability?employeeId=${selectedEmployee.id}&serviceId=${selectedService.id}&date=${selectedDate}`
-          )
-            .then((r) => r.json())
-            .then((d) => setSlots(d.slots ?? []));
+          revalidateSlots();
         }
-        setLoading(false);
+        setIsSubmitting(false);
         return;
       }
 
@@ -133,7 +118,7 @@ export default function BookingWizard() {
     } catch {
       setError("Błąd połączenia. Sprawdź internet i spróbuj ponownie.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -177,7 +162,7 @@ export default function BookingWizard() {
     if (currentStepperStep === 2 && !selectedEmployee) return true;
     if (currentStepperStep === 3 && (!selectedDate || !selectedTime)) return true;
     if (currentStepperStep === 4 && (!firstName || !lastName || !email)) return true;
-    if (loading) return true;
+    if (isSubmitting || servicesLoading || employeesLoading || daysLoading || slotsLoading) return true;
     return false;
   };
 
@@ -192,7 +177,7 @@ export default function BookingWizard() {
       <Stepper
         initialStep={1}
         backButtonText="Wstecz"
-        nextButtonText={currentStepperStep === 4 ? (loading ? "Wysyłanie..." : "Zarezerwuj") : "Dalej"}
+        nextButtonText={currentStepperStep === 4 ? (isSubmitting ? "Wysyłanie..." : "Zarezerwuj") : "Dalej"}
         onStepChange={(step) => setCurrentStepperStep(step)}
         onFinalStepCompleted={() => submitBooking()}
         nextButtonProps={{
@@ -255,9 +240,9 @@ export default function BookingWizard() {
         <Step>
           <div>
             <h2 className="font-display text-xl mb-4 text-center">Wybierz osobę</h2>
-            {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
+            {employeesLoading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
             <div className="space-y-3 max-h-[50vh] overflow-y-auto px-1 py-1">
-              {!loading && employees.length > 1 && (
+              {!employeesLoading && employees.length > 1 && (
                 <button
                   onClick={() => setSelectedEmployee(employees[0])}
                   className={`w-full text-left border rounded-2xl p-4 transition-colors ${
@@ -272,7 +257,7 @@ export default function BookingWizard() {
                   </p>
                 </button>
               )}
-              {!loading &&
+              {!employeesLoading &&
                 employees.map((e) => (
                   <button
                     key={e.id}
@@ -295,7 +280,7 @@ export default function BookingWizard() {
                     </div>
                   </button>
                 ))}
-              {!loading && employees.length === 0 && (
+              {!employeesLoading && employees.length === 0 && (
                 <p className="text-center text-[var(--muted)] py-6">
                   Brak dostępnych osób dla tej usługi.
                 </p>
@@ -311,8 +296,8 @@ export default function BookingWizard() {
               {!selectedDate && (
                 <div>
                   <h3 className="font-medium mb-3">Wybierz dzień</h3>
-                  {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
-                  {!loading &&
+                  {daysLoading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
+                  {!daysLoading &&
                     groupedDays.map(([month, monthDays]) => (
                       <div key={month} className="mb-5">
                         <p className="text-xs uppercase tracking-wide text-[var(--muted)] mb-2">
@@ -354,8 +339,8 @@ export default function BookingWizard() {
                     ← Zmień dzień
                   </button>
                   <h3 className="font-medium mb-3">{formatDatePL(selectedDate)}</h3>
-                  {loading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
-                  {!loading && slots.length === 0 && (
+                  {slotsLoading && <p className="text-center text-[var(--muted)] py-6">Ładowanie...</p>}
+                  {!slotsLoading && slots.length === 0 && (
                     <p className="text-[var(--muted)] py-4">Brak wolnych godzin tego dnia.</p>
                   )}
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
