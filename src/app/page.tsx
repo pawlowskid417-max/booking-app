@@ -86,28 +86,30 @@ export default async function HomePage() {
           />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center w-full">
-          <AnimatedSection>
-            <h1 className="font-display text-5xl md:text-6xl mb-6 tracking-tight leading-tight max-w-3xl mx-auto bg-gradient-to-br from-white via-white/90 to-white/30 bg-clip-text text-transparent drop-shadow-md">
-              Piękne paznokcie zaczynają się tutaj
-            </h1>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={0.2}>
-            <p className="text-zinc-300 text-lg max-w-xl mx-auto mb-10">
-              Umów wizytę online w kilka kliknięć — wybierz usługę, osobę i dogodny
-              termin. Bez telefonowania, bez czekania.
-            </p>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={0.4}>
-            <Link
-              href="/rezerwacja"
-              className="inline-block bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-medium px-8 py-4 rounded-full transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-0.5 duration-300"
-            >
-              Sprawdź wolne terminy
-            </Link>
-          </AnimatedSection>
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center w-full">
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 md:p-14 shadow-2xl">
+            <AnimatedSection>
+              <h1 className="font-display text-5xl md:text-6xl mb-6 tracking-tight leading-tight max-w-3xl mx-auto bg-gradient-to-br from-white via-white/90 to-white/30 bg-clip-text text-transparent drop-shadow-md">
+                Piękne paznokcie zaczynają się tutaj
+              </h1>
+            </AnimatedSection>
+            
+            <AnimatedSection delay={0.2}>
+              <p className="text-zinc-200 text-lg max-w-xl mx-auto mb-10">
+                Umów wizytę online w kilka kliknięć — wybierz usługę, osobę i dogodny
+                termin. Bez telefonowania, bez czekania.
+              </p>
+            </AnimatedSection>
+            
+            <AnimatedSection delay={0.4}>
+              <Link
+                href="/rezerwacja"
+                className="inline-block bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-medium px-8 py-4 rounded-full transition-colors shadow-xl hover:shadow-2xl hover:-translate-y-0.5 duration-300"
+              >
+                Sprawdź wolne terminy
+              </Link>
+            </AnimatedSection>
+          </div>
         </div>
       </section>
 
