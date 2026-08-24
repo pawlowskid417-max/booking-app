@@ -16,6 +16,11 @@ export async function POST(request: Request): Promise<NextResponse> {
           tokenPayload: JSON.stringify({}),
         };
       },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        // Vercel Blob wymaga tego callbacku by poprawnie zakończyć upload.
+        // Jeśli zwrócimy tu 200 (a tak robi handleUpload), upload kończy się sukcesem.
+        console.log('Upload completed:', blob.url);
+      },
     });
 
     return NextResponse.json(jsonResponse);
