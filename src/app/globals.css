@@ -35,3 +35,30 @@ body {
 h1, h2, h3, h4, h5, h6, .font-display {
   font-family: var(--font-heading), serif;
 }
+
+/* Interaktywne elementy */
+button:not(:disabled) {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(196, 143, 150, 0.15); /* Subtelny cień z kolorem akcentu */
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+/* Wyłączone przyciski */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Linki w panelu zachowujące się jak przyciski */
+a[href^="/panel/"]:hover {
+  opacity: 0.9;
+}

@@ -4,17 +4,22 @@ import { db } from "@/lib/db";
 export const revalidate = 60;
 
 export async function GET(req: NextRequest) {
-  const serviceId = req.nextUrl.searchParams.get("serviceId");
+  const serviceIdsParam = req.nextUrl.searchParams.get("serviceIds");
 
   let employees;
 
-  if (serviceId) {
+  if (serviceIdsParam) {
+    const serviceIds = serviceIdsParam.split(",");
+    
+    // Używamy AND (every) by znaleźć pracownika, który ma wszystkie wybrane usługi
     employees = await db.employee.findMany({
       where: {
         isActive: true,
-        services: {
-          some: { serviceId }
-        }
+        AND: serviceIds.map(id => ({
+          services: {
+            some: { serviceId: id }
+          }
+        }))
       },
       orderBy: { displayOrder: "asc" }
     });
