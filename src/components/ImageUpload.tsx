@@ -46,9 +46,6 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
       const newBlob = await upload(file.name, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
-        onUploadProgress: (progressEvent) => {
-          setProgress(Math.round(progressEvent.percentage));
-        }
       });
 
       onChange(newBlob.url);
@@ -79,7 +76,7 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
               <>
                 <div className="w-8 h-8 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin mb-3"></div>
                 <span className="text-sm font-medium text-[var(--accent-dark)]">
-                  Wgrywanie... {progress !== null ? `${progress}%` : ''}
+                  Wgrywanie...
                 </span>
                 <span className="text-xs mt-1 text-[var(--muted)]">Proszę czekać, nie zamykaj okna</span>
               </>
