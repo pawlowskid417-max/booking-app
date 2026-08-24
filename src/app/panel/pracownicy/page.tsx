@@ -22,6 +22,11 @@ export default function PracownicyPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null; name: string | null }>({
+    isOpen: false,
+    id: null,
+    name: null
+  });
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -100,20 +105,19 @@ export default function PracownicyPage() {
     load();
   }
 
-  async function deleteEmployee(id: string) {
-    if (deletingId === id) {
-      if (window.confirm("Czy na pewno chcesz usunąć tego pracownika? Tej operacji nie można cofnąć.")) {
-        setDeletingId(id + "_loading");
-        await fetch(`/api/panel/employees/${id}`, { method: "DELETE" });
-        setDeletingId(null);
-        load();
-      } else {
-        setDeletingId(null);
-      }
-    } else {
-      setDeletingId(id);
-      setTimeout(() => setDeletingId(null), 3000);
-    }
+  function promptDelete(e: EmployeeRow) {
+    setConfirmDelete({ isOpen: true, id: e.id, name: `${e.firstName} ${e.lastName}` });
+  }
+
+  async function executeDelete() {
+    if (!confirmDelete.id) return;
+    
+    setDeletingId(confirmDelete.id);
+    setConfirmDelete({ isOpen: false, id: null, name: null });
+    
+    await fetch(`/api/panel/employees/${confirmDelete.id}`, { method: "DELETE" });
+    setDeletingId(null);
+    load();
   }
 
   return (
@@ -158,19 +162,11 @@ export default function PracownicyPage() {
                     {e.isActive ? "Dezaktywuj" : "Aktywuj"}
                   </button>
                   <button
-                    onClick={() => deleteEmployee(e.id)}
-                    disabled={deletingId === e.id + "_loading"}
-                    className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
-                      deletingId === e.id
-                        ? "bg-red-500 text-white border-red-500"
-                        : "border border-red-200 text-red-500 hover:bg-red-50"
-                    }`}
+                    onClick={() => promptDelete(e)}
+                    disabled={deletingId === e.id}
+                    className="text-xs border border-red-200 text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors disabled:opacity-50"
                   >
-                    {deletingId === e.id + "_loading" 
-                      ? "Usuwam..." 
-                      : deletingId === e.id 
-                        ? "Kliknij ponownie" 
-                        : "Usuń"}
+                    {deletingId === e.id ? "Usuwam..." : "Usuń"}
                   </button>
                 </div>
               </div>
@@ -268,6 +264,38 @@ export default function PracownicyPage() {
             </button>
           </div>
         </section>
+
+        {confirmDelete.isOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-[var(--surface)] w-full max-w-md rounded-2xl p-6 shadow-xl border border-[var(--border)] animate-fade-in text-center">
+              <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-display text-[var(--foreground)] mb-2">Usuwanie pracownika</h3>
+              <p className="text-[var(--muted)] text-sm mb-6">
+                Czy na pewno chcesz <strong>całkowicie i bezpowrotnie</strong> usunąć profil pracownika <strong>{confirmDelete.name}</strong>?<br/><br/>
+                Zostaną usunięte również wszystkie przypisane do niego wizyty!
+              </p>
+              
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setConfirmDelete({ isOpen: false, id: null, name: null })}
+                  className="px-5 py-2.5 rounded-full border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--background)] font-medium text-sm transition-colors"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={executeDelete}
+                  className="px-5 py-2.5 rounded-full bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition-colors"
+                >
+                  Tak, usuń bezpowrotnie
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <style jsx global>{`

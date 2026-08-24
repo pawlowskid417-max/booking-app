@@ -66,6 +66,12 @@ export async function DELETE(
 
   try {
     const emp = await db.employee.findUnique({ where: { id } });
+
+    // Usuń wszystkie powiązane wizyty, aby można było usunąć pracownika całkowicie z bazy
+    await db.appointment.deleteMany({
+      where: { employeeId: id }
+    });
+
     await db.employee.delete({
       where: { id }
     });
