@@ -38,14 +38,14 @@ export default async function HomePage() {
   return (
     <main className="flex-1">
       {/* NAVBAR */}
-      <header className="fixed w-full top-0 left-0 z-50 border-b border-[var(--border)]/30 bg-[var(--surface)]/40 backdrop-blur-lg">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="font-display text-xl text-[var(--accent-dark)] font-medium">
+      <header className="fixed w-full top-6 left-1/2 -translate-x-1/2 z-50 px-4 max-w-5xl">
+        <div className="bg-[#1a1a1a]/70 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center justify-between shadow-2xl">
+          <span className="font-display text-xl text-white font-medium tracking-wide">
             {settings.salonName}
           </span>
           <Link
             href="/rezerwacja"
-            className="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-sm font-medium px-5 py-2.5 rounded-full transition-colors"
+            className="bg-white hover:bg-gray-200 text-black text-sm font-semibold px-6 py-2.5 rounded-full transition-colors shadow-sm"
           >
             Zarezerwuj wizytę
           </Link>
