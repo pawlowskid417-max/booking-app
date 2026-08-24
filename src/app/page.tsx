@@ -173,25 +173,10 @@ export default async function HomePage() {
       {/* OPINIE */}
       <ReviewsClientSection reviews={reviews} />
 
-      {/* CTA + STOPKA */}
-      <section className="snap-start max-w-5xl mx-auto px-6 py-24 text-center">
-        <AnimatedSection>
-          <h2 className="font-display text-3xl md:text-4xl text-[var(--foreground)] mb-6">
-            Gotowa na piękne paznokcie?
-          </h2>
-          <p className="text-[var(--muted)] text-lg mb-10 max-w-md mx-auto">
-            Wybierz usługę i znajdź dogodny termin w naszym kalendarzu online. To zajmie tylko chwilę.
-          </p>
-          <Link
-            href="/rezerwacja"
-            className="inline-block bg-[var(--foreground)] hover:bg-[var(--accent-dark)] text-white font-medium px-10 py-4 rounded-full transition-colors shadow-lg hover:-translate-y-0.5 duration-300"
-          >
-            Zarezerwuj wizytę
-          </Link>
-        </AnimatedSection>
-
+      {/* STOPKA */}
+      <section className="snap-end w-full max-w-5xl mx-auto px-6 pb-12 pt-24 text-center">
         <AnimatedSection delay={0.2}>
-          <div className="mt-20 pt-10 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-4 gap-8 text-sm text-[var(--muted)] text-left items-start">
+          <div className="border-t border-[var(--border)] pt-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm text-[var(--muted)] text-left items-start">
             <div>
               <h4 className="font-display text-lg text-[var(--foreground)] mb-3">Kontakt</h4>
               <p className="mb-1">{settings.salonAddress}</p>
