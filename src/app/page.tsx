@@ -53,7 +53,7 @@ export default async function HomePage() {
       </header>
 
       {/* HERO */}
-      <section className="relative bg-[var(--hero-bg)] overflow-hidden">
+      <section className="relative bg-[var(--hero-bg)] overflow-hidden min-h-[100svh] flex items-center justify-center">
         {settings.heroImageUrl && (
           <div className="absolute inset-0 z-0">
             <Image 
@@ -86,7 +86,7 @@ export default async function HomePage() {
           />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-40 pb-28 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center w-full">
           <AnimatedSection>
             <h1 className="font-display text-5xl md:text-6xl mb-6 tracking-tight leading-tight max-w-3xl mx-auto bg-gradient-to-br from-white via-white/90 to-white/30 bg-clip-text text-transparent drop-shadow-md">
               Piękne paznokcie zaczynają się tutaj
