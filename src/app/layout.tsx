@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pl"
-      className={`h-full antialiased scroll-smooth snap-y snap-mandatory ${heading.variable} ${body.variable}`}
+      className={`h-full antialiased scroll-smooth snap-y snap-proximity ${heading.variable} ${body.variable}`}
     >
       <head>
         <script
