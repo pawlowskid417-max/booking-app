@@ -70,9 +70,9 @@ export default async function HomePage() {
         <div className="absolute inset-0 z-0 pointer-events-none opacity-80">
           <PixelBlast
             variant="diamond"
-            pixelSize={5}
+            pixelSize={7}
             color="#E3BFC4"
-            patternScale={6.25}
+            patternScale={7.5}
             patternDensity={1.25}
             enableRipples={false}
             rippleSpeed={0.3}
@@ -86,7 +86,7 @@ export default async function HomePage() {
           />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-28 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-40 pb-28 text-center">
           <AnimatedSection>
             <h1 className="font-display text-5xl md:text-6xl mb-6 tracking-tight leading-tight max-w-3xl mx-auto bg-gradient-to-br from-white via-white/90 to-white/30 bg-clip-text text-transparent drop-shadow-md">
               Piękne paznokcie zaczynają się tutaj
