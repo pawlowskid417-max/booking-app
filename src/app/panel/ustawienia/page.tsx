@@ -150,13 +150,6 @@ export default function UstawieniaPage() {
         <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 mb-6">
           <h2 className="font-medium mb-4">Dane salonu i Wygląd</h2>
           
-          <ImageUpload
-            label="Zdjęcie główne w tle (Hero)"
-            value={settings.hero_image_url}
-            onChange={(url) => setSettings({ ...settings, hero_image_url: url })}
-            aspectRatio="video"
-          />
-
           <label className="block mb-3">
             <span className="text-sm font-medium">Nazwa salonu</span>
             <input
