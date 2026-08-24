@@ -40,6 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-README.md
 AGENTS.md
 CLAUDE.md
