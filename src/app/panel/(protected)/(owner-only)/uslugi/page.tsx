@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import PanelNav from "@/components/PanelNav";
+import { useState, useEffect } from "react";
+import useSWR from "swr";
 import PanelLoading from "@/components/PanelLoading";
 import type { Service } from "@/lib/types";
 import { formatPrice, formatDurationMin } from "@/lib/types";
 
 export default function UslugiPage() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: servicesData, isLoading: loadingServices, mutate: mutateServices } = useSWR<{ services: Service[] }>("/api/panel/services");
+  const services = servicesData?.services ?? [];
+
+  const { data: categoriesData, isLoading: loadingCategories } = useSWR<{ id: string; name: string }[]>("/api/panel/categories");
+  const categories = categoriesData ?? [];
+
+  const loading = loadingServices || loadingCategories;
   const [message, setMessage] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -19,25 +23,11 @@ export default function UslugiPage() {
   const [priceZl, setPriceZl] = useState("");
   const [adding, setAdding] = useState(false);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    fetch("/api/panel/services")
-      .then((r) => r.json())
-      .then((d) => setServices(d.services ?? []))
-      .then(() => fetch("/api/panel/categories"))
-      .then((r) => r.ok ? r.json() : [])
-      .then((c) => {
-        setCategories(c);
-        if (c.length > 0 && category === "Manicure") {
-          setCategory(c[0].name);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    if (categories.length > 0 && category === "Manicure") {
+      setCategory(categories[0].name);
+    }
+  }, [categories]);
 
   async function addService() {
     if (!name.trim() || !priceZl) return;
@@ -54,10 +44,10 @@ export default function UslugiPage() {
     if (res.ok) {
       setName("");
       setDescription("");
-      setCategory("Manicure");
+      if (categories.length > 0) setCategory(categories[0].name);
       setDurationMin(60);
       setPriceZl("");
-      load();
+      mutateServices();
     } else {
       const data = await res.json();
       setMessage(data.error || "Nie udało się dodać usługi.");
@@ -71,7 +61,7 @@ export default function UslugiPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: !isActive }),
     });
-    load();
+    mutateServices();
   }
 
   return (

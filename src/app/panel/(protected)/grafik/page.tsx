@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
 import PanelNav from "@/components/PanelNav";
 import PanelLoading from "@/components/PanelLoading";
 import type { Employee } from "@/lib/types";
@@ -36,12 +37,50 @@ interface CurrentUser {
 }
 
 export default function GrafikPage() {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const { data: meData } = useSWR<{ user: CurrentUser }>("/api/panel/me");
+  const user = meData?.user ?? null;
+
+  const { data: empData } = useSWR<{ employees: Employee[] }>("/api/panel/employees");
+  const employees = empData?.employees ?? [];
+
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
+  
+  useEffect(() => {
+    if (user && employees.length > 0 && !selectedEmployeeId) {
+      if (user.role !== "OWNER" && user.employeeId) {
+        setSelectedEmployeeId(user.employeeId);
+      } else if (user.role === "OWNER") {
+        setSelectedEmployeeId(employees[0].id);
+      }
+    }
+  }, [user, employees, selectedEmployeeId]);
+
+  const { data: whData, isLoading: loadingWH, mutate: mutateWH } = useSWR<{ workingHours: WorkingHourRow[] }>(
+    selectedEmployeeId ? `/api/panel/working-hours?employeeId=${selectedEmployeeId}` : null
+  );
+
+  const { data: doData, isLoading: loadingDO, mutate: mutateDO } = useSWR<{ overrides: DayOverrideRow[] }>(
+    selectedEmployeeId ? `/api/panel/day-overrides?employeeId=${selectedEmployeeId}` : null
+  );
+
   const [hours, setHours] = useState<Record<number, { active: boolean; start: string; end: string }>>({});
-  const [overrides, setOverrides] = useState<DayOverrideRow[]>([]);
-  const [pageReady, setPageReady] = useState(false);
+  
+  useEffect(() => {
+    if (whData) {
+      const map: Record<number, { active: boolean; start: string; end: string }> = {};
+      for (const w of [0, 1, 2, 3, 4, 5, 6]) {
+        map[w] = { active: false, start: "09:00", end: "17:00" };
+      }
+      for (const row of whData.workingHours) {
+        map[row.weekday] = { active: true, start: row.startTime, end: row.endTime };
+      }
+      setHours(map);
+    }
+  }, [whData]);
+
+  const overrides = doData?.overrides ?? [];
+  const pageReady = user && employees.length > 0 && !loadingWH && !loadingDO;
+
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -50,57 +89,6 @@ export default function GrafikPage() {
   const [newOverrideStart, setNewOverrideStart] = useState("09:00");
   const [newOverrideEnd, setNewOverrideEnd] = useState("17:00");
   const [newOverrideNote, setNewOverrideNote] = useState("");
-
-  const [initialLoaded, setInitialLoaded] = useState(false);
-
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/panel/me").then(r => r.json()),
-      fetch("/api/panel/employees").then(r => r.json())
-    ]).then(([meData, empData]) => {
-      setUser(meData.user);
-      setEmployees(empData.employees ?? []);
-      
-      let empId = "";
-      if (meData.user?.role !== "OWNER" && meData.user?.employeeId) {
-        empId = meData.user.employeeId;
-      } else if (meData.user?.role === "OWNER" && empData.employees?.length > 0) {
-        empId = empData.employees[0].id;
-      }
-      
-      setSelectedEmployeeId(empId);
-      setInitialLoaded(true);
-    });
-  }, []);
-
-  const loadSchedule = useCallback(() => {
-    if (!initialLoaded) return;
-    if (!selectedEmployeeId) {
-      setPageReady(true);
-      return;
-    }
-    
-    Promise.all([
-      fetch(`/api/panel/working-hours?employeeId=${selectedEmployeeId}`).then(r => r.json()),
-      fetch(`/api/panel/day-overrides?employeeId=${selectedEmployeeId}`).then(r => r.json())
-    ]).then(([wd, od]) => {
-      const map: Record<number, { active: boolean; start: string; end: string }> = {};
-      for (const w of [0, 1, 2, 3, 4, 5, 6]) {
-        map[w] = { active: false, start: "09:00", end: "17:00" };
-      }
-      for (const row of (wd.workingHours ?? []) as WorkingHourRow[]) {
-        map[row.weekday] = { active: true, start: row.startTime, end: row.endTime };
-      }
-      setHours(map);
-      setOverrides(od.overrides ?? []);
-    }).finally(() => {
-      setPageReady(true);
-    });
-  }, [selectedEmployeeId, initialLoaded]);
-
-  useEffect(() => {
-    loadSchedule();
-  }, [loadSchedule]);
 
   async function saveSchedule() {
     setSaving(true);
@@ -140,7 +128,7 @@ export default function GrafikPage() {
     if (res.ok) {
       setNewOverrideDate("");
       setNewOverrideNote("");
-      loadSchedule();
+      mutateDO();
     } else {
       setMessage("Nie udało się dodać wyjątku.");
     }
@@ -148,7 +136,7 @@ export default function GrafikPage() {
 
   async function removeOverride(id: string) {
     await fetch(`/api/panel/day-overrides/${id}`, { method: "DELETE" });
-    loadSchedule();
+    mutateDO();
   }
 
   return (

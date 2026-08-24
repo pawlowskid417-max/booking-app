@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import useSWR from "swr";
 
 interface CurrentUser {
   id: string;
@@ -14,14 +15,13 @@ interface CurrentUser {
 export default function PanelNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<CurrentUser | null>(null);
+  
+  const { data, error } = useSWR<{ user: CurrentUser }>("/api/panel/me");
+  const user = data?.user ?? null;
 
   useEffect(() => {
-    fetch("/api/panel/me")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setUser(d.user))
-      .catch(() => router.push("/panel/login"));
-  }, [router]);
+    if (error) router.push("/panel/login");
+  }, [error, router]);
 
   async function handleLogout() {
     await fetch("/api/panel/logout", { method: "POST" });

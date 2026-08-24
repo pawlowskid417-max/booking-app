@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import PanelLoading from "@/components/PanelLoading";
 
@@ -10,25 +11,13 @@ interface Category {
 }
 
 export default function CategoriesPanel() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categoriesData, isLoading: loading, mutate: mutateCategories } = useSWR<Category[]>("/api/panel/categories");
+  const categories = categoriesData ?? [];
+
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const router = useRouter();
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  async function fetchCategories() {
-    setLoading(true);
-    const res = await fetch("/api/panel/categories");
-    if (res.ok) {
-      setCategories(await res.json());
-    }
-    setLoading(false);
-  }
 
   async function addCategory() {
     if (!newName.trim()) return;
@@ -40,7 +29,7 @@ export default function CategoriesPanel() {
     });
     if (res.ok) {
       setNewName("");
-      await fetchCategories();
+      mutateCategories();
       router.refresh();
     }
     setAdding(false);
@@ -52,7 +41,7 @@ export default function CategoriesPanel() {
       setDeletingId(name + "_loading"); // stan ładowania usuwania
       await fetch(`/api/panel/categories?name=${encodeURIComponent(name)}`, { method: "DELETE" });
       setDeletingId(null);
-      await fetchCategories();
+      mutateCategories();
       router.refresh();
     } else {
       // Pierwsze kliknięcie

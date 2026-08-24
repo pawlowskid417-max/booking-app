@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import PanelNav from "@/components/PanelNav";
+import { useState } from "react";
+import useSWR from "swr";
 import PanelLoading from "@/components/PanelLoading";
 import ImageUpload from "@/components/ImageUpload";
 import type { Service } from "@/lib/types";
@@ -18,9 +18,14 @@ interface EmployeeRow {
 }
 
 export default function PracownicyPage() {
-  const [employees, setEmployees] = useState<EmployeeRow[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: empData, isLoading: loadingEmp, mutate: mutateEmployees } = useSWR<{ employees: EmployeeRow[] }>("/api/panel/employees");
+  const employees = empData?.employees ?? [];
+
+  const { data: srvData, isLoading: loadingSrv } = useSWR<{ services: Service[] }>("/api/panel/services");
+  const services = srvData?.services ?? [];
+
+  const loading = loadingEmp || loadingSrv;
+
   const [message, setMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null; name: string | null }>({
@@ -37,23 +42,6 @@ export default function PracownicyPage() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    Promise.all([
-      fetch("/api/panel/employees").then((r) => r.json()),
-      fetch("/api/panel/services").then((r) => r.json()),
-    ])
-      .then(([e, s]) => {
-        setEmployees(e.employees ?? []);
-        setServices(s.services ?? []);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   function toggleServiceSelection(id: string) {
     setSelectedServiceIds((prev) =>
@@ -80,7 +68,7 @@ export default function PracownicyPage() {
       setBio("");
       setPhotoUrl("");
       setSelectedServiceIds([]);
-      load();
+      mutateEmployees();
     } else {
       const data = await res.json();
       setMessage(data.error || "Nie udało się dodać pracownika.");
@@ -94,7 +82,7 @@ export default function PracownicyPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: !isActive }),
     });
-    load();
+    mutateEmployees();
   }
 
   async function updateEmployeeServices(id: string, serviceIds: string[]) {
@@ -103,7 +91,7 @@ export default function PracownicyPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ serviceIds }),
     });
-    load();
+    mutateEmployees();
   }
 
   function promptDelete(e: EmployeeRow) {
@@ -122,7 +110,7 @@ export default function PracownicyPage() {
     
     await fetch(`/api/panel/employees/${confirmDelete.id}`, { method: "DELETE" });
     setDeletingId(null);
-    load();
+    mutateEmployees();
   }
 
   return (
