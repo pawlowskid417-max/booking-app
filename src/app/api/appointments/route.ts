@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
   }
 
   const cancelUrl = `${req.nextUrl.origin}/anuluj/${cancelToken}`;
-  sendBookingConfirmation({
+  await sendBookingConfirmation({
     appointmentId,
     clientEmail: clientEmail.trim().toLowerCase(),
     clientFirstName: clientFirstName.trim(),

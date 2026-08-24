@@ -39,6 +39,9 @@ export default function BookingWizard() {
     employeeName: string;
   } | null>(null);
 
+  // Zmienna przechowująca aktualny krok w komponencie Stepper
+  const [currentStepperStep, setCurrentStepperStep] = useState(1);
+
   // ---- Pobieranie danych przez SWR ----
   const { data: servicesData, isLoading: servicesLoading } = useSWR("/api/services", fetcher);
   const services: Service[] = servicesData?.services ?? [];
@@ -152,9 +155,6 @@ export default function BookingWizard() {
       </div>
     );
   }
-
-  // Zmienna przechowująca aktualny krok w komponencie Stepper
-  const [currentStepperStep, setCurrentStepperStep] = useState(1);
 
   // Funkcja określająca, czy przycisk "Dalej" ma być zablokowany dla danego kroku
   const isNextDisabled = () => {
