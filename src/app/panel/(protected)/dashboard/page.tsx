@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import PanelNav from "@/components/PanelNav";
 import PanelLoading from "@/components/PanelLoading";
 import type { AppointmentWithDetails } from "@/lib/types";
@@ -27,25 +28,16 @@ function todayStr(): string {
 }
 
 export default function DashboardPage() {
-  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filterFrom, setFilterFrom] = useState(todayStr());
   const [showPast, setShowPast] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (!showPast) params.set("from", filterFrom);
-    fetch(`/api/panel/appointments?${params.toString()}`)
-      .then((r) => r.json())
-      .then((d) => setAppointments(d.appointments ?? []))
-      .finally(() => setLoading(false));
-  }, [filterFrom, showPast]);
+  const params = new URLSearchParams();
+  if (!showPast) params.set("from", filterFrom);
+  const endpoint = `/api/panel/appointments?${params.toString()}`;
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data, isLoading: loading, mutate } = useSWR<{ appointments: AppointmentWithDetails[] }>(endpoint);
+  const appointments = data?.appointments ?? [];
 
   async function updateStatus(id: string, status: string) {
     setActionError(null);
@@ -59,7 +51,7 @@ export default function DashboardPage() {
       setActionError(data.error || "Nie udało się zaktualizować rezerwacji");
       return;
     }
-    load();
+    mutate();
   }
 
   const grouped = groupByDate(appointments);

@@ -29,6 +29,8 @@ export default function LoginPage() {
       preload("/api/panel/services", fetcher);
       preload("/api/panel/categories", fetcher);
       preload("/api/panel/employees", fetcher);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      preload(`/api/panel/appointments?from=${todayStr}`, fetcher);
 
       router.push("/panel/dashboard");
       router.refresh();
