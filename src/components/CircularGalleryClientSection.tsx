@@ -18,8 +18,8 @@ export default function CircularGalleryClientSection({ images }: { images: Galle
   }));
 
   return (
-    <section className="bg-[var(--cream)] py-24 border-t border-[var(--border)] overflow-hidden">
-      <div className="max-w-5xl mx-auto px-6 mb-12">
+    <section className="snap-start min-h-[100svh] w-full flex flex-col justify-center bg-[var(--surface)] overflow-hidden relative">
+      <div className="max-w-5xl mx-auto w-full px-6 mb-12">
         <AnimatedSection>
           <h2 className="font-display text-4xl text-center text-[var(--foreground)]">Nasze realizacje</h2>
           <p className="text-center text-[var(--muted)] mt-4">Zapraszamy do obejrzenia naszych prac</p>
