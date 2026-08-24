@@ -32,7 +32,7 @@ export default function ReviewsClientSection({ reviews }: { reviews: Review[] })
   }
 
   return (
-    <section className="bg-[var(--surface)] py-20 border-t border-[var(--border)]">
+    <section className="snap-start bg-[var(--surface)] py-20 border-t border-[var(--border)]">
       <div className="max-w-5xl mx-auto px-6">
         <AnimatedSection>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">

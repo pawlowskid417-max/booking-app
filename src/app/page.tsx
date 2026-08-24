@@ -166,7 +166,7 @@ export default async function HomePage() {
       <ReviewsClientSection reviews={reviews} />
 
       {/* CTA + STOPKA */}
-      <section className="max-w-5xl mx-auto px-6 py-24 text-center">
+      <section className="snap-start max-w-5xl mx-auto px-6 py-24 text-center">
         <AnimatedSection>
           <h2 className="font-display text-3xl md:text-4xl text-[var(--foreground)] mb-6">
             Gotowa na piękne paznokcie?
