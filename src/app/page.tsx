@@ -125,31 +125,39 @@ export default async function HomePage() {
       </section>
 
       {/* ZESPÓŁ */}
-      <section className="bg-[var(--surface)] border-y border-[var(--border)]">
-        <div className="max-w-5xl mx-auto px-6 py-20">
+      <section className="snap-start min-h-[100svh] w-full flex flex-col justify-center bg-[var(--surface)] border-y border-[var(--border)] relative">
+        <div className="max-w-5xl mx-auto px-6 py-20 w-full">
           <AnimatedSection>
-            <h2 className="font-display text-3xl text-[var(--foreground)] mb-10 text-center">
+            <h2 className="font-display text-4xl text-[var(--foreground)] mb-4 text-center">
               Poznaj nasz zespół
             </h2>
+            <p className="text-center text-[var(--muted)] mb-16 max-w-2xl mx-auto">
+              Oddaj się w ręce naszych wykwalifikowanych specjalistek, dla których praca to prawdziwa pasja.
+            </p>
           </AnimatedSection>
           
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-10">
             {employees.map((e, i) => (
               <AnimatedSection key={e.id} delay={i * 0.1}>
-                <div className="flex flex-col items-center text-center group cursor-default">
-                  <div className="w-32 h-32 mb-4 rounded-full overflow-hidden bg-[var(--accent-light)] border-4 border-[var(--background)] shadow-lg group-hover:scale-105 transition-transform duration-500 relative">
+                <div className="flex flex-col items-center text-center group cursor-default bg-white/50 backdrop-blur-sm border border-[var(--border)] rounded-3xl p-8 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 h-full">
+                  <div className="w-40 h-40 mb-6 rounded-full overflow-hidden bg-[var(--accent-light)] border-4 border-white shadow-md group-hover:scale-105 group-hover:rotate-3 transition-transform duration-500 relative">
                     {e.photoUrl ? (
                       <Image src={e.photoUrl} alt={`${e.firstName} ${e.lastName}`} fill className="object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[var(--accent-dark)] font-display text-4xl">
+                      <div className="w-full h-full flex items-center justify-center text-[var(--accent-dark)] font-display text-5xl">
                         {e.firstName[0]}
                       </div>
                     )}
                   </div>
-                  <h3 className="font-display text-xl text-[var(--foreground)]">
+                  <h3 className="font-display text-2xl text-[var(--foreground)] font-semibold">
                     {e.firstName} {e.lastName}
                   </h3>
-                  {e.bio && <p className="text-sm text-[var(--muted)] mt-2">{e.bio}</p>}
+                  <div className="w-12 h-0.5 bg-[var(--accent)] my-4 opacity-50 rounded-full"></div>
+                  {e.bio ? (
+                    <p className="text-sm text-[var(--muted)] leading-relaxed">{e.bio}</p>
+                  ) : (
+                    <p className="text-sm text-[var(--muted)] leading-relaxed">Specjalistka ds. stylizacji paznokci, służąca profesjonalną poradą.</p>
+                  )}
                 </div>
               </AnimatedSection>
             ))}
