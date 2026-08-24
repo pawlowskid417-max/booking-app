@@ -20,6 +20,7 @@ export default function PracownicyPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -94,6 +95,18 @@ export default function PracownicyPage() {
     load();
   }
 
+  async function deleteEmployee(id: string) {
+    if (deletingId === id) {
+      setDeletingId(id + "_loading");
+      await fetch(`/api/panel/employees/${id}`, { method: "DELETE" });
+      setDeletingId(null);
+      load();
+    } else {
+      setDeletingId(id);
+      setTimeout(() => setDeletingId(null), 3000);
+    }
+  }
+
   return (
     <main className="flex-1 bg-[var(--background)]">
       
@@ -128,12 +141,29 @@ export default function PracownicyPage() {
                     {e.bio && <p className="text-sm text-[var(--muted)]">{e.bio}</p>}
                   </div>
                 </div>
-                <button
-                  onClick={() => toggleActive(e.id, !!e.isActive)}
-                  className="text-xs border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5 rounded-full whitespace-nowrap shrink-0"
-                >
-                  {e.isActive ? "Dezaktywuj" : "Aktywuj"}
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => toggleActive(e.id, !!e.isActive)}
+                    className="text-xs border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5 rounded-full whitespace-nowrap"
+                  >
+                    {e.isActive ? "Dezaktywuj" : "Aktywuj"}
+                  </button>
+                  <button
+                    onClick={() => deleteEmployee(e.id)}
+                    disabled={deletingId === e.id + "_loading"}
+                    className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
+                      deletingId === e.id
+                        ? "bg-red-500 text-white border-red-500"
+                        : "border border-red-200 text-red-500 hover:bg-red-50"
+                    }`}
+                  >
+                    {deletingId === e.id + "_loading" 
+                      ? "Usuwam..." 
+                      : deletingId === e.id 
+                        ? "Kliknij ponownie" 
+                        : "Usuń"}
+                  </button>
+                </div>
               </div>
               <div>
                 <p className="text-xs text-[var(--muted)] mb-2">Wykonywane usługi:</p>

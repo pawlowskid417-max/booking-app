@@ -52,3 +52,34 @@ export async function PATCH(
 
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "OWNER") {
+    return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  try {
+    await db.employee.delete({
+      where: { id }
+    });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    // Jeśli pracownik ma rezerwacje (onDelete: Restrict), Prisma wyrzuci błąd P2003.
+    // Wtedy wykonujemy "soft delete" (archiwizację).
+    if (error.code === 'P2003') {
+      await db.employee.update({
+        where: { id },
+        data: { isActive: false }
+      });
+      return NextResponse.json({ success: true, softDeleted: true });
+    }
+    return NextResponse.json({ error: "Nie udało się usunąć pracownika." }, { status: 500 });
+  }
+}
+

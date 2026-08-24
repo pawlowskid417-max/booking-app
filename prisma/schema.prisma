@@ -52,6 +52,17 @@ model Employee {
 }
 
 // ------------------------------------------------------------
+// KATEGORIE USŁUG
+// ------------------------------------------------------------
+model ServiceCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("service_categories")
+}
+
+// ------------------------------------------------------------
 // USŁUGI
 // ------------------------------------------------------------
 model Service {

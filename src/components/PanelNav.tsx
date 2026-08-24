@@ -34,6 +34,7 @@ export default function PanelNav() {
     ...(user?.role === "OWNER"
       ? [
           { href: "/panel/uslugi", label: "Usługi" },
+          { href: "/panel/kategorie", label: "Kategorie" },
           { href: "/panel/pracownicy", label: "Pracownicy" },
           { href: "/panel/galeria", label: "Galeria" },
           { href: "/panel/opinie", label: "Opinie" },

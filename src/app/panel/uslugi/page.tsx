@@ -7,6 +7,7 @@ import { formatPrice, formatDurationMin } from "@/lib/types";
 
 export default function UslugiPage() {
   const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -22,6 +23,14 @@ export default function UslugiPage() {
     fetch("/api/panel/services")
       .then((r) => r.json())
       .then((d) => setServices(d.services ?? []))
+      .then(() => fetch("/api/panel/categories"))
+      .then((r) => r.ok ? r.json() : [])
+      .then((c) => {
+        setCategories(c);
+        if (c.length > 0 && category === "Manicure") {
+          setCategory(c[0].name);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -115,7 +124,15 @@ export default function UslugiPage() {
             </label>
             <label className="block">
               <span className="text-sm font-medium">Kategoria</span>
-              <input value={category} onChange={(e) => setCategory(e.target.value)} className="input" placeholder="np. Manicure, Pedicure, Inne" />
+              {categories.length > 0 ? (
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-sm text-red-500 mt-2">Brak kategorii. Dodaj je najpierw w zakładce Kategorie.</div>
+              )}
             </label>
             <label className="block">
               <span className="text-sm font-medium">Opis (opcjonalnie)</span>
