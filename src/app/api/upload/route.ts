@@ -12,9 +12,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         // Return allowed configurations for the upload
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-          tokenPayload: JSON.stringify({
-            // Optional payload to be passed to onUploadCompleted
-          }),
+          maximumSizeInBytes: 50 * 1024 * 1024, // 50MB limit
+          tokenPayload: JSON.stringify({}),
         };
       },
     });
