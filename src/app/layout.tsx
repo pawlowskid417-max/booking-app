@@ -26,7 +26,7 @@ import { db } from "@/lib/db";
 const heading = Playfair_Display({ subsets: ["latin-ext"], variable: "--font-heading", display: "swap" });
 const body = Inter({ subsets: ["latin-ext"], variable: "--font-body", display: "swap" });
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await db.bookingSettings.findUnique({ where: { id: "singleton" } });
   
   const jsonLd = {
