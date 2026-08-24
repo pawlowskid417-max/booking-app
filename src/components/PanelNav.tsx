@@ -44,15 +44,15 @@ export default function PanelNav() {
 
   return (
     <header className="border-b border-[var(--border)] bg-[var(--surface)]">
-      <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-6">
-          <span className="font-display text-lg text-[var(--accent-dark)]">Panel salonu</span>
-          <nav className="flex gap-1">
+      <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6 w-full md:w-auto">
+          <span className="font-display text-xl text-[var(--accent-dark)] whitespace-nowrap">Panel salonu</span>
+          <nav className="flex gap-1 flex-wrap justify-center md:justify-start">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`text-sm px-3 py-1.5 rounded-full transition-colors ${
+                className={`text-sm px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
                   pathname === l.href
                     ? "bg-[var(--accent-light)] text-[var(--accent-dark)] font-medium"
                     : "text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -63,11 +63,11 @@ export default function PanelNav() {
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-3">
-          {user && <span className="text-xs text-[var(--muted)]">{user.email}</span>}
+        <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
+          {user && <span className="text-xs text-[var(--muted)] truncate max-w-[150px] md:max-w-none">{user.email}</span>}
           <button
             onClick={handleLogout}
-            className="text-sm text-[var(--muted)] hover:text-[var(--accent-dark)]"
+            className="text-sm text-[var(--muted)] hover:text-[var(--accent-dark)] whitespace-nowrap"
           >
             Wyloguj
           </button>

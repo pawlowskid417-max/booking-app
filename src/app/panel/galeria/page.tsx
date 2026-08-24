@@ -89,10 +89,10 @@ export default function GaleriaPage() {
   return (
     <main className="flex-1 bg-[var(--background)]">
       
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6">Galeria</h1>
+      <div className="max-w-3xl mx-auto px-4 py-6 md:px-6 md:py-8">
+        <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6 text-center md:text-left">Galeria</h1>
 
-        <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 mb-8">
+        <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 md:p-5 mb-8">
           <h2 className="font-medium mb-4">Dodaj zdjęcie do galerii</h2>
           <div className="space-y-4">
             <ImageUpload

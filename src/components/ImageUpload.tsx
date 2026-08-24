@@ -85,7 +85,7 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
                 <span className="text-xs mt-1 text-[var(--muted)]">Proszę czekać, nie zamykaj okna</span>
               </>
             ) : (
-              <span className="text-sm">Kliknij, aby wgrać zdjęcie (bez limitu rozmiaru)</span>
+              <span className="text-xs md:text-sm px-2">Kliknij, aby wgrać zdjęcie (bez limitu rozmiaru)</span>
             )}
           </div>
         )}
