@@ -33,6 +33,7 @@ export default function PanelNav() {
     { href: "/panel/grafik", label: "Grafik" },
     ...(user?.role !== "EMPLOYEE"
       ? [
+          { href: "/panel/podsumowanie", label: "Podsumowanie" },
           { href: "/panel/uslugi", label: "Usługi" },
           { href: "/panel/kategorie", label: "Kategorie" },
           { href: "/panel/pracownicy", label: "Pracownicy" },
