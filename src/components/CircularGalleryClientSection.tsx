@@ -22,10 +22,10 @@ export default function CircularGalleryClientSection({ images }: { images: Galle
       <div className="max-w-5xl mx-auto px-6 mb-12">
         <AnimatedSection>
           <h2 className="font-display text-4xl text-center text-[var(--foreground)]">Nasze realizacje</h2>
-          <p className="text-center text-[var(--muted)] mt-4">Przesuwaj w lewo i prawo, żeby zobaczyć nasze prace</p>
+          <p className="text-center text-[var(--muted)] mt-4">Zapraszamy do obejrzenia naszych prac</p>
         </AnimatedSection>
       </div>
-      <div style={{ height: "600px", position: "relative" }} className="w-full max-w-[100vw] overflow-hidden cursor-grab active:cursor-grabbing">
+      <div style={{ height: "600px", position: "relative" }} className="w-full max-w-[100vw] overflow-hidden pointer-events-none">
         <CircularGallery
           items={items}
           bend={3}
