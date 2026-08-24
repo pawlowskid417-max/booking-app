@@ -31,7 +31,7 @@ export default function PanelNav() {
   const links = [
     { href: "/panel/dashboard", label: "Rezerwacje" },
     { href: "/panel/grafik", label: "Grafik" },
-    ...(user?.role === "OWNER"
+    ...(user?.role !== "EMPLOYEE"
       ? [
           { href: "/panel/uslugi", label: "Usługi" },
           { href: "/panel/kategorie", label: "Kategorie" },
@@ -44,7 +44,7 @@ export default function PanelNav() {
   ];
 
   return (
-    <header className="border-b border-[var(--border)] bg-[var(--surface)]">
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/90 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6 w-full md:w-auto">
           <span className="font-display text-xl text-[var(--accent-dark)] whitespace-nowrap">Panel salonu</span>
