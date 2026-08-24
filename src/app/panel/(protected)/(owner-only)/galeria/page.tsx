@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import PanelNav from "@/components/PanelNav";
 import ImageUpload from "@/components/ImageUpload";
 import PanelLoading from "@/components/PanelLoading";
@@ -14,22 +15,11 @@ interface GalleryImage {
 }
 
 export default function GaleriaPage() {
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate } = useSWR<{ images: GalleryImage[] }>("/api/panel/gallery");
+  const images = data?.images ?? [];
+
   const [uploadingUrl, setUploadingUrl] = useState("");
   const [altText, setAltText] = useState("");
-
-  function load() {
-    setLoading(true);
-    fetch("/api/panel/gallery")
-      .then((r) => r.json())
-      .then((d) => setImages(d.images || []))
-      .finally(() => setLoading(false));
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
 
   async function addImage() {
     if (!uploadingUrl) return;
@@ -42,13 +32,13 @@ export default function GaleriaPage() {
     
     setUploadingUrl("");
     setAltText("");
-    load();
+    mutate();
   }
 
   async function deleteImage(id: string) {
     if (!confirm("Na pewno usunąć to zdjęcie?")) return;
     await fetch(`/api/panel/gallery/${id}`, { method: "DELETE" });
-    load();
+    mutate();
   }
 
   async function moveUp(index: number) {
@@ -58,15 +48,15 @@ export default function GaleriaPage() {
     newImages[index - 1].order = newImages[index].order;
     newImages[index].order = temp;
     
-    // Sort and update backend
+    // Update backend and mutate SWR cache optimally
     newImages.sort((a, b) => a.order - b.order);
-    setImages(newImages);
     
     await fetch("/api/panel/gallery", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ images: newImages.map(img => ({ id: img.id, order: img.order })) }),
     });
+    mutate();
   }
 
   async function moveDown(index: number) {
@@ -76,15 +66,15 @@ export default function GaleriaPage() {
     newImages[index + 1].order = newImages[index].order;
     newImages[index].order = temp;
     
-    // Sort and update backend
+    // Update backend and mutate SWR cache optimally
     newImages.sort((a, b) => a.order - b.order);
-    setImages(newImages);
     
     await fetch("/api/panel/gallery", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ images: newImages.map(img => ({ id: img.id, order: img.order })) }),
     });
+    mutate();
   }
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import PanelNav from "@/components/PanelNav";
 import PanelLoading from "@/components/PanelLoading";
 import { formatPrice } from "@/lib/types";
@@ -15,26 +16,8 @@ interface SummaryData {
 }
 
 export default function PodsumowaniePage() {
-  const [summary, setSummary] = useState<SummaryData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/panel/summary")
-      .then((res) => {
-        if (!res.ok) throw new Error("Błąd pobierania danych");
-        return res.json();
-      })
-      .then((data) => {
-        setSummary(data.summary);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Wystąpił błąd podczas ładowania podsumowania.");
-        setLoading(false);
-      });
-  }, []);
+  const { data, error, isLoading: loading } = useSWR<{ summary: SummaryData }>("/api/panel/summary");
+  const summary = data?.summary ?? null;
 
   if (loading) {
     return (

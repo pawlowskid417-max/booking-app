@@ -29,6 +29,10 @@ export default function LoginPage() {
       preload("/api/panel/services", fetcher);
       preload("/api/panel/categories", fetcher);
       preload("/api/panel/employees", fetcher);
+      preload("/api/panel/summary", fetcher);
+      preload("/api/panel/settings", fetcher);
+      preload("/api/panel/gallery", fetcher);
+      preload("/api/panel/reviews", fetcher);
       const todayStr = new Date().toISOString().slice(0, 10);
       preload(`/api/panel/appointments?from=${todayStr}`, fetcher);
 

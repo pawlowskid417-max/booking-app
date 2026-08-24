@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import PanelNav from "@/components/PanelNav";
 import PanelLoading from "@/components/PanelLoading";
 
@@ -23,15 +24,15 @@ interface SettingsData {
 }
 
 export default function UstawieniaPage() {
+  const { data, mutate } = useSWR<{ settings: SettingsData }>("/api/panel/settings");
   const [settings, setSettings] = useState<SettingsData | null>(null);
+  
+  useEffect(() => {
+    if (data?.settings) setSettings(data.settings);
+  }, [data?.settings]);
+
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/panel/settings")
-      .then((r) => r.json())
-      .then((d) => setSettings(d.settings));
-  }, []);
 
   async function save() {
     if (!settings) return;
@@ -62,6 +63,7 @@ export default function UstawieniaPage() {
 
     setSaving(false);
     setMessage(res.ok ? "Ustawienia zapisane." : "Nie udało się zapisać ustawień.");
+    if (res.ok) mutate();
   }
 
   if (!settings) {

@@ -1,30 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { Review } from "@prisma/client";
 import PanelLoading from "@/components/PanelLoading";
 
 export default function ReviewsAdminPage() {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  async function fetchReviews() {
-    try {
-      const res = await fetch("/api/panel/reviews");
-      if (!res.ok) throw new Error("Nie udało się pobrać opinii");
-      const data = await res.json();
-      setReviews(data.reviews);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data, error, isLoading: loading, mutate } = useSWR<{ reviews: Review[] }>("/api/panel/reviews");
+  const reviews = data?.reviews ?? [];
 
   async function toggleApproval(id: string, currentStatus: boolean) {
     try {
@@ -34,9 +17,7 @@ export default function ReviewsAdminPage() {
         body: JSON.stringify({ approved: !currentStatus }),
       });
       if (res.ok) {
-        setReviews((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, approved: !currentStatus } : r))
-        );
+        mutate();
       }
     } catch (e) {
       alert("Błąd podczas zmiany statusu");
@@ -48,7 +29,7 @@ export default function ReviewsAdminPage() {
     try {
       const res = await fetch(`/api/panel/reviews/${id}`, { method: "DELETE" });
       if (res.ok) {
-        setReviews((prev) => prev.filter((r) => r.id !== id));
+        mutate();
       }
     } catch (e) {
       alert("Błąd podczas usuwania");
