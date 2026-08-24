@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function BookingPage() {
   return (
     <main className="flex-1 bg-[var(--background)]">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]">
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="font-display text-xl text-[var(--accent-dark)]">
             ← Strona główna

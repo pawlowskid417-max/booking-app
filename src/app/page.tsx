@@ -38,7 +38,7 @@ export default async function HomePage() {
   return (
     <main className="flex-1">
       {/* NAVBAR */}
-      <header className="border-b border-[var(--border)] bg-[var(--surface)] relative z-10">
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="font-display text-xl text-[var(--accent-dark)] font-medium">
             {settings.salonName}
