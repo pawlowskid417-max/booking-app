@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Review } from "@prisma/client";
+import PanelLoading from "@/components/PanelLoading";
 
 export default function ReviewsAdminPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -54,7 +55,13 @@ export default function ReviewsAdminPage() {
     }
   }
 
-  if (loading) return <div className="p-6">Ładowanie opinii...</div>;
+  if (loading) {
+    return (
+      <main className="flex-1 bg-[var(--background)]">
+        <PanelLoading />
+      </main>
+    );
+  }
   if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (

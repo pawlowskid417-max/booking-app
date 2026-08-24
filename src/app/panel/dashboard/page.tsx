@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import PanelNav from "@/components/PanelNav";
+import PanelLoading from "@/components/PanelLoading";
 import type { AppointmentWithDetails } from "@/lib/types";
 import { formatPrice, formatDatePL } from "@/lib/types";
 
@@ -84,7 +85,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {loading && <p className="text-[var(--muted)]">Ładowanie...</p>}
+        {loading && <PanelLoading />}
 
         {!loading && appointments.length === 0 && (
           <div className="text-center py-16 text-[var(--muted)]">

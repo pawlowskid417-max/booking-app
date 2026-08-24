@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PanelNav from "@/components/PanelNav";
 import ImageUpload from "@/components/ImageUpload";
+import PanelLoading from "@/components/PanelLoading";
 import Image from "next/image";
 
 interface GalleryImage {
@@ -126,7 +127,7 @@ export default function GaleriaPage() {
         <section>
           <h2 className="font-medium mb-4">Twoje portfolio ({images.length})</h2>
           
-          {loading && <p className="text-[var(--muted)]">Ładowanie...</p>}
+          {loading && <PanelLoading />}
           
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {images.map((img, index) => (

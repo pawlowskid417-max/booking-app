@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import PanelNav from "@/components/PanelNav";
+import PanelLoading from "@/components/PanelLoading";
 import type { Service } from "@/lib/types";
 import { formatPrice, formatDurationMin } from "@/lib/types";
 
@@ -85,7 +86,7 @@ export default function UslugiPage() {
           </div>
         )}
 
-        {loading && <p className="text-[var(--muted)]">Ładowanie...</p>}
+        {loading && <PanelLoading />}
 
         <div className="space-y-3 mb-8">
           {services.map((s) => (

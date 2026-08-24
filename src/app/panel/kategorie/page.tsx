@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import PanelLoading from "@/components/PanelLoading";
 
 interface Category {
   id: string;
@@ -63,7 +64,7 @@ export default function CategoriesPanel() {
   if (loading) {
     return (
       <main className="flex-1 p-6 md:p-10 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--accent)]"></div>
+        <PanelLoading />
       </main>
     );
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PanelNav from "@/components/PanelNav";
+import PanelLoading from "@/components/PanelLoading";
 import ImageUpload from "@/components/ImageUpload";
 
 interface SettingsData {
@@ -63,8 +64,7 @@ export default function UstawieniaPage() {
   if (!settings) {
     return (
       <main className="flex-1 bg-[var(--background)]">
-        
-        <div className="max-w-2xl mx-auto px-6 py-8 text-[var(--muted)]">Ładowanie...</div>
+        <PanelLoading />
       </main>
     );
   }

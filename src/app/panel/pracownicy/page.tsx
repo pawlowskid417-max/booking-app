@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import PanelNav from "@/components/PanelNav";
+import PanelLoading from "@/components/PanelLoading";
 import ImageUpload from "@/components/ImageUpload";
 import type { Service } from "@/lib/types";
 
@@ -119,7 +120,7 @@ export default function PracownicyPage() {
           </div>
         )}
 
-        {loading && <p className="text-[var(--muted)]">Ładowanie...</p>}
+        {loading && <PanelLoading />}
 
         <div className="space-y-4 mb-8">
           {employees.map((e) => (
