@@ -9,32 +9,36 @@ import {
 
 export async function GET(req: NextRequest) {
   const employeeId = req.nextUrl.searchParams.get("employeeId");
-  const serviceId = req.nextUrl.searchParams.get("serviceId");
+  const serviceIdsStr = req.nextUrl.searchParams.get("serviceIds") || req.nextUrl.searchParams.get("serviceId");
   const date = req.nextUrl.searchParams.get("date");
 
-  if (!employeeId || !serviceId) {
+  if (!employeeId || !serviceIdsStr) {
     return NextResponse.json(
-      { error: "Wymagane parametry: employeeId, serviceId" },
+      { error: "Wymagane parametry: employeeId, serviceIds" },
       { status: 400 }
     );
   }
 
-  const service = await db.service.findFirst({
-    where: { id: serviceId, isActive: true }
+  const serviceIds = serviceIdsStr.split(",");
+  
+  const services = await db.service.findMany({
+    where: { id: { in: serviceIds }, isActive: true }
   });
 
-  if (!service) {
-    return NextResponse.json({ error: "Nie znaleziono usługi" }, { status: 404 });
+  if (services.length === 0) {
+    return NextResponse.json({ error: "Nie znaleziono usług" }, { status: 404 });
   }
+
+  const totalDurationMin = services.reduce((sum, s) => sum + s.durationMin, 0);
 
   const settings = await getBookingSettings();
   const range = getBookableDateRange(settings);
 
   if (date) {
-    const slots = await getAvailableSlotsForDay(employeeId, date, service.durationMin);
+    const slots = await getAvailableSlotsForDay(employeeId, date, totalDurationMin);
     return NextResponse.json({ date, slots, range });
   }
 
-  const days = await getBookableDaysOverview(employeeId, service.durationMin);
+  const days = await getBookableDaysOverview(employeeId, totalDurationMin);
   return NextResponse.json({ days, range });
 }

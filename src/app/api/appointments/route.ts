@@ -9,7 +9,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface CreateAppointmentBody {
   employeeId: string;
-  serviceId: string;
+  serviceIds: string[];
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
   clientFirstName: string;
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   const {
     employeeId,
-    serviceId,
+    serviceIds,
     date,
     time,
     clientFirstName,
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  if (!employeeId || !serviceId || !date || !time) {
+  if (!employeeId || !serviceIds || serviceIds.length === 0 || !date || !time) {
     return NextResponse.json({ error: "Brak wymaganych danych terminu" }, { status: 400 });
   }
   if (!clientFirstName?.trim() || !clientLastName?.trim()) {
@@ -68,36 +68,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Podaj prawidłowy adres email" }, { status: 400 });
   }
 
-  const service = await db.service.findFirst({
-    where: { id: serviceId, isActive: true }
+  const services = await db.service.findMany({
+    where: { id: { in: serviceIds }, isActive: true }
   });
 
-  if (!service) {
-    return NextResponse.json({ error: "Nie znaleziono wybranej usługi" }, { status: 404 });
+  if (services.length !== serviceIds.length) {
+    return NextResponse.json({ error: "Nie znaleziono wszystkich wybranych usług" }, { status: 404 });
   }
 
   const employee = await db.employee.findFirst({
-    where: { id: employeeId, isActive: true }
+    where: { id: employeeId, isActive: true },
+    include: { services: true }
   });
 
   if (!employee) {
     return NextResponse.json({ error: "Nie znaleziono wybranej osoby" }, { status: 404 });
   }
 
-  const canPerform = await db.employeeService.findUnique({
-    where: {
-      employeeId_serviceId: { employeeId, serviceId }
+  const employeeServIds = employee.services.map(s => s.serviceId);
+  for (const sId of serviceIds) {
+    if (!employeeServIds.includes(sId)) {
+      return NextResponse.json(
+        { error: "Wybrana osoba nie wykonuje wszystkich wybranych usług" },
+        { status: 400 }
+      );
     }
-  });
-
-  if (!canPerform) {
-    return NextResponse.json(
-      { error: "Wybrana osoba nie wykonuje tej usługi" },
-      { status: 400 }
-    );
   }
 
-  if (!(await isSlotStillAvailable(employeeId, date, time, service.durationMin))) {
+  const totalDurationMin = services.reduce((sum, s) => sum + s.durationMin, 0);
+  const totalPriceCents = services.reduce((sum, s) => sum + s.priceCents, 0);
+  const serviceNames = services.map(s => s.name).join(" + ");
+
+  if (!(await isSlotStillAvailable(employeeId, date, time, totalDurationMin))) {
     return NextResponse.json(
       { error: "Ten termin został już zajęty. Wybierz inną godzinę." },
       { status: 409 }
@@ -105,7 +107,7 @@ export async function POST(req: NextRequest) {
   }
 
   const startAt = new Date(`${date}T${time}:00.000Z`);
-  const endAt = new Date(startAt.getTime() + service.durationMin * 60000);
+  const endAt = new Date(startAt.getTime() + totalDurationMin * 60000);
 
   const settings = await getBookingSettings();
   const status = settings.autoConfirmBookings ? "CONFIRMED" : "PENDING";
@@ -131,7 +133,6 @@ export async function POST(req: NextRequest) {
         data: {
           id: appointmentId,
           employeeId,
-          serviceId,
           clientFirstName: clientFirstName.trim(),
           clientLastName: clientLastName.trim(),
           clientEmail: clientEmail.trim().toLowerCase(),
@@ -140,7 +141,10 @@ export async function POST(req: NextRequest) {
           startAt,
           endAt,
           status,
-          cancelToken
+          cancelToken,
+          services: {
+            create: serviceIds.map(sId => ({ serviceId: sId }))
+          }
         }
       });
     });
@@ -160,7 +164,7 @@ export async function POST(req: NextRequest) {
     clientEmail: clientEmail.trim().toLowerCase(),
     clientFirstName: clientFirstName.trim(),
     employeeName: `${employee.firstName} ${employee.lastName}`,
-    serviceName: service.name,
+    serviceName: serviceNames,
     dateLabel: formatDatePL(date),
     timeLabel: time,
     cancelUrl,
@@ -174,8 +178,8 @@ export async function POST(req: NextRequest) {
       status,
       date,
       time,
-      serviceName: service.name,
-      servicePrice: formatPrice(service.priceCents),
+      serviceName: serviceNames,
+      servicePrice: formatPrice(totalPriceCents),
       employeeName: `${employee.firstName} ${employee.lastName}`,
       cancelToken,
     },

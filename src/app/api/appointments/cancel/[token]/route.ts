@@ -12,7 +12,7 @@ export async function GET(
 
   const appt = await db.appointment.findUnique({
     where: { cancelToken: token },
-    include: { service: true }
+    include: { services: { include: { service: true } } }
   });
 
   if (!appt) {
@@ -26,7 +26,7 @@ export async function GET(
       start_at: appt.startAt.toISOString(),
       client_first_name: appt.clientFirstName,
       client_email: appt.clientEmail,
-      service_name: appt.service.name
+      service_name: appt.services.map(s => s.service.name).join(' + ')
     }
   });
 }
@@ -39,7 +39,7 @@ export async function POST(
 
   const appt = await db.appointment.findUnique({
     where: { cancelToken: token },
-    include: { service: true }
+    include: { services: { include: { service: true } } }
   });
 
   if (!appt) {
@@ -68,7 +68,7 @@ export async function POST(
     appointmentId: appt.id,
     clientEmail: appt.clientEmail,
     clientFirstName: appt.clientFirstName,
-    serviceName: appt.service.name,
+    serviceName: appt.services.map(s => s.service.name).join(' + '),
     dateLabel: formatDatePL(dateStr),
     timeLabel: timeStr,
     salonName: settings.salonName,

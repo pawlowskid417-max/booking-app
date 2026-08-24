@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         reminderEmailSentAt: null,
       },
       include: {
-        service: true,
+        services: { include: { service: true } },
       },
     });
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
           html: `
             <h2>Przypomnienie o wizycie</h2>
             <p>Witaj ${appt.clientFirstName},</p>
-            <p>Przypominamy o Twojej nadchodzącej wizycie: <strong>${appt.service.name}</strong>.</p>
+            <p>Przypominamy o Twojej nadchodzącej wizycie: <strong>${appt.services.map(s => s.service.name).join(' + ')}</strong>.</p>
             <p>Data: ${appt.startAt.toLocaleString("pl-PL")}</p>
             <p>Czekamy na Ciebie!</p>
           `,

@@ -98,10 +98,14 @@ export default function PracownicyPage() {
 
   async function deleteEmployee(id: string) {
     if (deletingId === id) {
-      setDeletingId(id + "_loading");
-      await fetch(`/api/panel/employees/${id}`, { method: "DELETE" });
-      setDeletingId(null);
-      load();
+      if (window.confirm("Czy na pewno chcesz usunąć tego pracownika? Tej operacji nie można cofnąć.")) {
+        setDeletingId(id + "_loading");
+        await fetch(`/api/panel/employees/${id}`, { method: "DELETE" });
+        setDeletingId(null);
+        load();
+      } else {
+        setDeletingId(null);
+      }
     } else {
       setDeletingId(id);
       setTimeout(() => setDeletingId(null), 3000);

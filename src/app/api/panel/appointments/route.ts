@@ -31,19 +31,27 @@ export async function GET(req: NextRequest) {
     where,
     include: {
       employee: true,
-      service: true
+      services: {
+        include: { service: true }
+      }
     },
     orderBy: { startAt: 'asc' }
   });
 
-  const mapped = appointments.map(a => ({
-    ...a,
-    employeeFirstName: a.employee.firstName,
-    employeeLastName: a.employee.lastName,
-    serviceName: a.service.name,
-    serviceDurationMin: a.service.durationMin,
-    servicePriceCents: a.service.priceCents,
-  }));
+  const mapped = appointments.map(a => {
+    const totalDuration = a.services.reduce((sum, s) => sum + s.service.durationMin, 0);
+    const totalPrice = a.services.reduce((sum, s) => sum + s.service.priceCents, 0);
+    const serviceNames = a.services.map(s => s.service.name).join(" + ");
+    
+    return {
+      ...a,
+      employeeFirstName: a.employee.firstName,
+      employeeLastName: a.employee.lastName,
+      serviceName: serviceNames,
+      serviceDurationMin: totalDuration,
+      servicePriceCents: totalPrice,
+    };
+  });
 
   return NextResponse.json({ appointments: mapped });
 }

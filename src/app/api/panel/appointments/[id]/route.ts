@@ -23,7 +23,7 @@ export async function PATCH(
 
   const appt = await db.appointment.findUnique({
     where: { id },
-    include: { service: true }
+    include: { services: { include: { service: true } } }
   });
 
   if (!appt) return NextResponse.json({ error: "Nie znaleziono rezerwacji" }, { status: 404 });
@@ -48,7 +48,7 @@ export async function PATCH(
       appointmentId: appt.id,
       clientEmail: appt.clientEmail,
       clientFirstName: appt.clientFirstName,
-      serviceName: appt.service.name,
+      serviceName: appt.services.map(s => s.service.name).join(' + '),
       dateLabel: formatDatePL(dateStr),
       timeLabel: timeStr,
       salonName: settings.salonName,

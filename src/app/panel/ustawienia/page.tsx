@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import PanelNav from "@/components/PanelNav";
 import PanelLoading from "@/components/PanelLoading";
-import ImageUpload from "@/components/ImageUpload";
 
 interface SettingsData {
   bookingWindowDays: number;
