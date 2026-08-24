@@ -16,8 +16,10 @@ interface SettingsData {
   contact_email: string | null;
   hero_image_url: string | null;
   instagram_url: string | null;
+  facebook_url: string | null;
   address: string | null;
   map_url: string | null;
+  map_iframe_url: string | null;
   opening_hours: string | null;
 }
 
@@ -51,8 +53,10 @@ export default function UstawieniaPage() {
         contactEmail: settings.contact_email,
         heroImageUrl: settings.hero_image_url,
         instagramUrl: settings.instagram_url,
+        facebookUrl: settings.facebook_url,
         address: settings.address,
         mapUrl: settings.map_url,
+        mapIframeUrl: settings.map_iframe_url,
         openingHours: settings.opening_hours,
       }),
     });
@@ -183,7 +187,7 @@ export default function UstawieniaPage() {
             />
           </label>
           <label className="block mb-3">
-            <span className="text-sm font-medium">Link do wizytówki z mapą (Google Maps)</span>
+            <span className="text-sm font-medium">Link do wizytówki z mapą (Google Maps - przycisk Wyznacz Trasę)</span>
             <input
               value={settings.map_url ?? ""}
               onChange={(e) => setSettings({ ...settings, map_url: e.target.value })}
@@ -192,10 +196,27 @@ export default function UstawieniaPage() {
             />
           </label>
           <label className="block mb-3">
+            <span className="text-sm font-medium">Link osadzenia mapy w stopce (Iframe Src z Google Maps)</span>
+            <input
+              value={settings.map_iframe_url ?? ""}
+              onChange={(e) => setSettings({ ...settings, map_iframe_url: e.target.value })}
+              className="input"
+              placeholder="np. https://www.google.com/maps/embed?pb=..."
+            />
+          </label>
+          <label className="block mb-3">
             <span className="text-sm font-medium">Link do Instagrama</span>
             <input
               value={settings.instagram_url ?? ""}
               onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value })}
+              className="input"
+            />
+          </label>
+          <label className="block mb-3">
+            <span className="text-sm font-medium">Link do Facebooka</span>
+            <input
+              value={settings.facebook_url ?? ""}
+              onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value })}
               className="input"
             />
           </label>

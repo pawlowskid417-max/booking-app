@@ -158,8 +158,10 @@ model BookingSettings {
 
   heroImageUrl        String?
   instagramUrl        String?
+  facebookUrl         String?
   address             String?
   mapUrl              String?
+  mapIframeUrl        String?
   openingHours        String?  // JSON string (np. { "mon": "9:00-18:00", ... })
 
   updatedAt           DateTime @updatedAt

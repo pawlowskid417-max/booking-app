@@ -202,19 +202,43 @@ export default async function HomePage() {
 
             <div>
               <h4 className="font-display text-lg text-[var(--foreground)] mb-3">Śledź nas</h4>
-              {settings.instagramUrl ? (
-                <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-block text-[var(--foreground)] hover:text-[var(--accent-dark)] transition-colors">
-                  Instagram
-                </a>
-              ) : (
-                <p>Brak podanego linku.</p>
-              )}
+              <div className="flex gap-4 items-center mt-4">
+                {settings.instagramUrl && (
+                  <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" title="Instagram">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig-grad)"/>
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M17.5 6.5H17.51" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <defs>
+                        <linearGradient id="ig-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                          <stop stopColor="#f09433" />
+                          <stop offset="0.25" stopColor="#e6683c" />
+                          <stop offset="0.5" stopColor="#dc2743" />
+                          <stop offset="0.75" stopColor="#cc2366" />
+                          <stop offset="1" stopColor="#bc1888" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </a>
+                )}
+                {settings.facebookUrl && (
+                  <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" title="Facebook">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" fill="#1877F2"/>
+                      <path d="M14 9.3h-1.6c-1 0-1.2.5-1.2 1.2v1.5h2.7l-.4 2.8h-2.3v7.2h-3v-7.2H6.4V12h1.8v-2c0-1.8 1.1-2.8 2.7-2.8 1.1 0 2.1.2 2.1.2v2h-1z" fill="white"/>
+                    </svg>
+                  </a>
+                )}
+                {!settings.instagramUrl && !settings.facebookUrl && (
+                  <p>Brak podanych linków.</p>
+                )}
+              </div>
             </div>
 
             {/* MAPA */}
             <div className="w-full h-[200px] md:h-full min-h-[150px] rounded-xl overflow-hidden shadow-sm border border-[var(--border)]">
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d156388.35438505525!2d20.896128698506822!3d52.23306532087541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669a869f01%3A0x72f0be2a88ead3fc!2sWarszawa!5e0!3m2!1spl!2spl!4v1700000000000!5m2!1spl!2spl" 
+                src={settings.mapIframeUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d156388.35438505525!2d20.896128698506822!3d52.23306532087541!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669a869f01%3A0x72f0be2a88ead3fc!2sWarszawa!5e0!3m2!1spl!2spl!4v1700000000000!5m2!1spl!2spl"} 
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 

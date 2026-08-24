@@ -32,8 +32,10 @@ export async function PATCH(req: NextRequest) {
     "contactEmail",
     "heroImageUrl",
     "instagramUrl",
+    "facebookUrl",
     "address",
     "mapUrl",
+    "mapIframeUrl",
     "openingHours"
   ];
 
