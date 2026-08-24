@@ -4,14 +4,9 @@ import { randomUUID } from "crypto";
 // ============================================================
 // WARSTWA WYSYŁKI EMAIL
 // ============================================================
-// W tym demo: tylko logujemy do konsoli + zapisujemy w notification_logs
-// (żeby dało się przetestować cały przepływ bez płatnego dostawcy).
-//
-// W PRODUKCJI podmień funkcję `sendEmailRaw` na realną wysyłkę przez:
-//   - Resend (darmowy tier 3000 maili/mies.) — kilka linii kodu, patrz
-//     https://resend.com/docs/send-with-nodejs
-//   - albo Nodemailer + istniejąca skrzynka SMTP (Gmail/domenowa) — 0 zł
-// Reszta systemu (kiedy i do kogo wysyłać) zostaje bez zmian.
+// Obecnie funkcja `sendEmailRaw` realnie wysyła maile przy użyciu 
+// Resend.com (korzystając z RESEND_API_KEY) oraz loguje je do konsoli.
+// Wszystkie zdarzenia zapisywane są również w tabeli notification_logs.
 // ============================================================
 
 interface EmailPayload {
@@ -22,14 +17,14 @@ interface EmailPayload {
 }
 
 async function sendEmailRaw(payload: EmailPayload): Promise<{ ok: boolean; error?: string }> {
-  // --- TRYB DEMO: logujemy zamiast realnie wysyłać ---
+  // Logowanie wysyłki (przydatne do debugowania)
   console.log("=".repeat(60));
   console.log(`[EMAIL] Do: ${payload.to}`);
   console.log(`[EMAIL] Temat: ${payload.subject}`);
   console.log(`[EMAIL] Treść:\n${payload.text}`);
   console.log("=".repeat(60));
 
-  // --- PRZYKŁAD PRODUKCYJNY Z RESEND ---
+  // --- WYSYŁKA PRZEZ RESEND ---
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

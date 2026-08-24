@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY || "dummy");
+import { sendBookingReminder } from "@/lib/email";
+import { formatDatePL } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
   // Weryfikacja CRON_SECRET od Vercel
@@ -24,6 +23,7 @@ export async function GET(req: NextRequest) {
       },
       include: {
         services: { include: { service: true } },
+        employee: true,
       },
     });
 
@@ -32,17 +32,19 @@ export async function GET(req: NextRequest) {
 
     for (const appt of appointments) {
       try {
-        await resend.emails.send({
-          from: "Studio Paznokci <rezerwacje@twojadomena.pl>", // Zmień na docelowy adres po zweryfikowaniu w Resend
-          to: appt.clientEmail,
-          subject: "Przypomnienie o wizycie - Studio Paznokci",
-          html: `
-            <h2>Przypomnienie o wizycie</h2>
-            <p>Witaj ${appt.clientFirstName},</p>
-            <p>Przypominamy o Twojej nadchodzącej wizycie: <strong>${appt.services.map(s => s.service.name).join(' + ')}</strong>.</p>
-            <p>Data: ${appt.startAt.toLocaleString("pl-PL")}</p>
-            <p>Czekamy na Ciebie!</p>
-          `,
+        const serviceName = appt.services.map(s => s.service.name).join(" + ");
+        const dateLabel = formatDatePL(appt.startAt.toISOString().split("T")[0]);
+        const timeLabel = appt.startAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+
+        await sendBookingReminder({
+          appointmentId: appt.id,
+          clientEmail: appt.clientEmail,
+          clientFirstName: appt.clientFirstName,
+          employeeName: appt.employee.firstName,
+          serviceName: serviceName,
+          dateLabel,
+          timeLabel,
+          salonName: "Studio Paznokci",
         });
 
         await db.appointment.update({

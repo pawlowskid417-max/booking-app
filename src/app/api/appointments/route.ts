@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { isSlotStillAvailable, getBookingSettings } from "@/lib/availability";
 import { sendBookingConfirmation } from "@/lib/email";
@@ -147,8 +148,14 @@ export async function POST(req: NextRequest) {
           }
         }
       });
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034") {
+      return NextResponse.json(
+        { error: "Ten termin został właśnie zajęty w tym samym ułamku sekundy. Wybierz inną godzinę." },
+        { status: 409 }
+      );
+    }
     if (e instanceof Error && e.message === "SLOT_TAKEN") {
       return NextResponse.json(
         { error: "Ten termin został już zajęty. Wybierz inną godzinę." },

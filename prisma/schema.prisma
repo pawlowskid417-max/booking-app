@@ -1,9 +1,6 @@
 // ============================================================
 // SCHEMA PRISMA — System rezerwacji dla salonu stylizacji paznokci
 // ============================================================
-// UWAGA: w tym demo używamy SQLite (plik lokalny, zero configu).
-// W produkcji: zmień provider na "postgresql" i DATABASE_URL na
-// connection string z Neon/Supabase — reszta schematu zostaje bez zmian.
 // ============================================================
 
 

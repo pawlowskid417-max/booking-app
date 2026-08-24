@@ -53,11 +53,17 @@ Aplikacja posiada pełen podział na role, egzekwowany bezpiecznie po stronie se
    - Zarządza stałymi godzinami pracy (`WorkingHours`) oraz urlopami/wyjątkami (`DayOverrides`) wszystkich osób.
    - Widzi zagregowane statystyki (Zarobki, liczba wizyt) w widoku **Podsumowanie**.
 
+   - Email: `wlasciciel@studiobella.pl`
+- Hasło: `admin123`
+
 2. **Pracownik (`EMPLOYEE`)**:
    - Loguje się własnym emailem i hasłem stworzonym przez szefową.
    - Po zalogowaniu ma dostęp **tylko** do dwóch zakładek: *Rezerwacje* i *Grafik*.
    - Nie może zmieniać swojego grafiku ani dodawać urlopów (suwaki edycji są dla niego ukryte, a API odrzuca requesty).
    - W widoku rezerwacji **widzi tylko swoje wizyty** (nie widzi wizyt innych pracowników), co zapewnia dyskrecję.
+
+   - Email: `wlasciciel@studiobella.pl`
+- Hasło: `admin123`
 
 > Próba wpisania z palca urlu (np. `/panel/uslugi`) przez pracownika automatycznie poskutkuje wyrenderowaniem estetycznego komunikatu "Brak dostępu", zabezpieczając panel po stronie serwera. Próba wejścia do panelu bez logowania automatycznie przekierowuje na ekran logowania.
 
@@ -72,10 +78,3 @@ Dla danego pracownika i dnia:
 4. Automatycznie uwzględnia *łączony czas trwania usług* (klient może wybrać więcej niż jedną usługę na raz – system obliczy sumę minut i zablokuje mniejsze dziury czasowe).
 5. Odrzuca sloty kolidujące z istniejącymi, potwierdzonymi rezerwacjami.
 6. Przy tworzeniu rezerwacji weryfikuje dostępność po stronie serwera, dzięki czemu niemożliwy jest tzw. podwójny booking (dwóch klientów w tym samym ułamku sekundy).
-
-## ✨ Ostatnio zaimplementowane funkcje
-- ✅ Całkowite przebudowanie systemu Auth (każdy pracownik posiada zhashowane własne hasło do logowania)
-- ✅ `Hard Delete` pracownika (usunięcie konta kasuje wszystkie powiązane z nim rezerwacje z bazy) z dedykowanym formularzem typu *modal* zamiast systemowego.
-- ✅ Widok `Podsumowanie` dla Właściciela do analizy utargów.
-- ✅ Wsparcie dla jednoczesnego wyboru wielu usług przez klienta podczas bookingu (koszt i czas są automatycznie sumowane).
-- ✅ Atrakcyjny layout panelu administracyjnego (glassmorphism, animacje przejść, interaktywne stany hover).
