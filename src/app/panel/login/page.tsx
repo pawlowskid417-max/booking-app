@@ -31,7 +31,7 @@ export default function LoginPage() {
 
       const todayStr = new Date().toISOString().slice(0, 10);
       
-      const safeFetcher = (url: string) => fetcher(url).catch(err => {
+      const safeFetcher = (url: string): Promise<any> => fetcher(url).catch(err => {
         console.error(`Błąd preloadingu ${url}:`, err);
         return null; 
       });

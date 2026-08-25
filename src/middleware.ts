@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verify } from "@/lib/auth";
-
-export const runtime = "edge";
+import { verify } from "@/lib/session";
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("panel_session")?.value;
