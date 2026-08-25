@@ -29,19 +29,14 @@ export default function LoginPage() {
       
       setLoadingState("PRELOADING");
 
-      // Bardzo ważne: Next.js API Routes z cookies().set() wysyłają nagłówek Set-Cookie.
-      // Zanim odpalimy 9 równoległych zapytań uwierzytelnionych do API, 
-      // musimy dać przeglądarce chwilę (event loop) na fizyczne zapisanie ciastka w pamięci,
-      // inaczej pierwsze żądania polecą z pustym nagłówkiem Cookie i zwrócą 401 Brak Uprawnień!
+      // Czekamy chwilę na zapisanie cookies
       await new Promise(resolve => setTimeout(resolve, 300));
 
       const todayStr = new Date().toISOString().slice(0, 10);
       
-      // Twarde pobranie danych z gwarancją czekania
-      // Zabezpieczamy poszczególne żądania przed wysadzeniem całego bloku
       const safeFetcher = (url: string) => fetcher(url).catch(err => {
         console.error(`Błąd preloadingu ${url}:`, err);
-        return null; // Zwracamy null zamiast rzucać błędem, by reszta mogła się załadować
+        return null; 
       });
 
       const [me, services, categories, employees, summary, settings, gallery, reviews, appointments] = await Promise.all([
@@ -56,18 +51,16 @@ export default function LoginPage() {
         safeFetcher(`/api/panel/appointments?from=${todayStr}`)
       ]);
 
-      // Nawodnienie globalnego cache SWR
-      mutate("/api/panel/me", me, false);
-      mutate("/api/panel/services", services, false);
-      mutate("/api/panel/categories", categories, false);
-      mutate("/api/panel/employees", employees, false);
-      mutate("/api/panel/summary", summary, false);
-      mutate("/api/panel/settings", settings, false);
-      mutate("/api/panel/gallery", gallery, false);
-      mutate("/api/panel/reviews", reviews, false);
-      mutate(`/api/panel/appointments?from=${todayStr}`, appointments, false);
+      if (me) mutate("/api/panel/me", me, false);
+      if (services) mutate("/api/panel/services", services, false);
+      if (categories) mutate("/api/panel/categories", categories, false);
+      if (employees) mutate("/api/panel/employees", employees, false);
+      if (summary) mutate("/api/panel/summary", summary, false);
+      if (settings) mutate("/api/panel/settings", settings, false);
+      if (gallery) mutate("/api/panel/gallery", gallery, false);
+      if (reviews) mutate("/api/panel/reviews", reviews, false);
+      if (appointments) mutate(`/api/panel/appointments?from=${todayStr}`, appointments, false);
 
-      // Preload grafiku dla wybranego pracownika
       let empId = "";
       if (me?.user?.role !== "OWNER" && me?.user?.employeeId) {
         empId = me.user.employeeId;
@@ -77,14 +70,19 @@ export default function LoginPage() {
 
       if (empId) {
         const [wh, ov] = await Promise.all([
-          fetcher(`/api/panel/working-hours?employeeId=${empId}`),
-          fetcher(`/api/panel/day-overrides?employeeId=${empId}`)
+          safeFetcher(`/api/panel/working-hours?employeeId=${empId}`),
+          safeFetcher(`/api/panel/day-overrides?employeeId=${empId}`)
         ]);
-        mutate(`/api/panel/working-hours?employeeId=${empId}`, wh, false);
-        mutate(`/api/panel/day-overrides?employeeId=${empId}`, ov, false);
+        if (wh) mutate(`/api/panel/working-hours?employeeId=${empId}`, wh, false);
+        if (ov) mutate(`/api/panel/day-overrides?employeeId=${empId}`, ov, false);
       }
 
       setLoadingState("FINISHED");
+      
+      // Wywołanie router.push od razu. Usunąłem router.refresh(), 
+      // ponieważ mógł wywoływać reset drzewa React i wyczyszczenie SWR cache.
+      router.push("/panel/dashboard");
+      
     } catch (e) {
       setError(e instanceof Error ? e.message : "Błąd logowania");
       setLoadingState("IDLE");
@@ -94,23 +92,18 @@ export default function LoginPage() {
   return (
     <main className="flex-1 flex items-center justify-center px-6 py-16 bg-[var(--background)] relative overflow-hidden">
       
-      <AnimatePresence onExitComplete={() => {
-        if (loadingState === "FINISHED") {
-          router.push("/panel/dashboard");
-          router.refresh();
-        }
-      }}>
-        {loadingState !== "IDLE" && loadingState !== "FINISHED" && (
+      <AnimatePresence>
+        {loadingState !== "IDLE" && (
           <motion.div 
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            className="fixed inset-0 z-50 bg-[var(--background)]/70 flex flex-col items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            // Solidne tło zapobiega miganiu formularza logowania podczas przejścia routera
+            className="fixed inset-0 z-50 bg-[var(--background)] flex flex-col items-center justify-center"
           >
             <motion.div 
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: -10 }}
               transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
               className="bg-[var(--surface)] p-8 md:p-10 rounded-[1.75rem] shadow-2xl shadow-[var(--accent)]/10 border border-[var(--border)] flex flex-col items-center gap-6 max-w-sm w-[90%] text-center"
             >
@@ -124,7 +117,7 @@ export default function LoginPage() {
                 ></motion.div>
                 
                 <AnimatePresence>
-                  {loadingState === "PRELOADING" && (
+                  {(loadingState === "PRELOADING" || loadingState === "FINISHED") && (
                     <motion.div
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
@@ -148,10 +141,15 @@ export default function LoginPage() {
                       <h3 className="font-display text-xl text-[var(--accent-dark)]">Trwa logowanie</h3>
                       <p className="text-sm text-[var(--muted)] mt-1">Weryfikacja poświadczeń...</p>
                     </motion.div>
-                  ) : (
+                  ) : loadingState === "PRELOADING" ? (
                     <motion.div key="preload" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.25 }}>
                       <h3 className="font-display text-xl text-[var(--accent-dark)]">Przygotowujemy panel</h3>
                       <p className="text-sm text-[var(--muted)] mt-1">Pobieramy bezpiecznie z serwera grafiki, rezerwacje i ustawienia...</p>
+                    </motion.div>
+                  ) : (
+                    <motion.div key="finished" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                      <h3 className="font-display text-xl text-[var(--accent-dark)]">Sukces!</h3>
+                      <p className="text-sm text-[var(--muted)] mt-1">Otwieram panel główny...</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
