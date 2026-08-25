@@ -3,7 +3,11 @@ import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, rating, content } = await req.json();
+    const { name, rating, content, _gotcha } = await req.json();
+
+    if (_gotcha) {
+      return NextResponse.json({ success: true });
+    }
 
     if (!name || !rating || !content) {
       return NextResponse.json({ error: "Brakujące pola" }, { status: 400 });

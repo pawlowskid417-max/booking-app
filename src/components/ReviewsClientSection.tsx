@@ -9,6 +9,7 @@ export default function ReviewsClientSection({ reviews }: { reviews: Review[] })
   const [name, setName] = useState("");
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
+  const [gotcha, setGotcha] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -18,7 +19,7 @@ export default function ReviewsClientSection({ reviews }: { reviews: Review[] })
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, rating, content }),
+        body: JSON.stringify({ name, rating, content, _gotcha: gotcha }),
       });
       if (res.ok) {
         setStatus("success");
@@ -59,6 +60,16 @@ export default function ReviewsClientSection({ reviews }: { reviews: Review[] })
                 </div>
               ) : (
                 <div className="space-y-4">
+                  <input 
+                    type="text" 
+                    name="_gotcha" 
+                    tabIndex={-1} 
+                    autoComplete="off" 
+                    value={gotcha} 
+                    onChange={e => setGotcha(e.target.value)} 
+                    style={{ position: 'absolute', left: '-9999px' }} 
+                    aria-hidden="true" 
+                  />
                   <div>
                     <label className="block text-sm font-medium mb-1">Imię</label>
                     <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border p-2 rounded-lg" placeholder="Twoje imię" />
