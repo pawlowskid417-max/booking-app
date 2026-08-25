@@ -27,17 +27,29 @@ function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+import useSWRInfinite from "swr/infinite";
+
 export default function DashboardPage() {
   const [filterFrom, setFilterFrom] = useState(todayStr());
   const [showPast, setShowPast] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const params = new URLSearchParams();
-  if (!showPast) params.set("from", filterFrom);
-  const endpoint = `/api/panel/appointments?${params.toString()}`;
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    if (previousPageData && !previousPageData.nextSkip) return null; // Koniec danych
+    
+    const skip = previousPageData ? previousPageData.nextSkip : 0;
+    const params = new URLSearchParams();
+    if (!showPast) params.set("from", filterFrom);
+    params.set("skip", skip.toString());
+    params.set("take", "50");
+    
+    return `/api/panel/appointments?${params.toString()}`;
+  };
 
-  const { data, isLoading: loading, mutate } = useSWR<{ appointments: AppointmentWithDetails[] }>(endpoint);
-  const appointments = data?.appointments ?? [];
+  const { data, size, setSize, mutate, isLoading: loading } = useSWRInfinite<{ appointments: AppointmentWithDetails[], nextSkip: number | null }>(getKey);
+  
+  const appointments = data ? data.flatMap(d => d.appointments) : [];
+  const hasMore = data && data[data.length - 1]?.nextSkip !== null;
 
   async function updateStatus(id: string, status: string) {
     setActionError(null);
@@ -172,6 +184,18 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {hasMore && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setSize(size + 1)}
+              disabled={loading}
+              className="px-6 py-2.5 bg-white border border-[var(--border)] rounded-full text-sm font-medium hover:border-[var(--accent)] transition-colors disabled:opacity-50"
+            >
+              {loading ? "Ładowanie..." : "Załaduj więcej"}
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );

@@ -1,21 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getSessionUser();
     if (!user || user.role !== "OWNER") {
       return NextResponse.json({ error: "Brak uprawnień" }, { status: 401 });
     }
 
+    const from = req.nextUrl.searchParams.get("from");
+    const to = req.nextUrl.searchParams.get("to");
+
+    const where: any = {
+      status: { in: ["COMPLETED", "CONFIRMED"] }
+    };
+
+    where.startAt = {};
+    if (from) {
+      where.startAt.gte = new Date(`${from}T00:00:00.000Z`);
+    } else {
+      // Domyślny limit to ostanie 12 miesięcy
+      const lastYear = new Date();
+      lastYear.setFullYear(lastYear.getFullYear() - 1);
+      where.startAt.gte = lastYear;
+    }
+    
+    if (to) {
+      where.startAt.lte = new Date(`${to}T23:59:59.999Z`);
+    }
+
     // Pobierz wizyty ze statusem COMPLETED (zrealizowane) lub CONFIRMED (nadchodzące)
     const appointments = await db.appointment.findMany({
-      where: {
-        status: { in: ["COMPLETED", "CONFIRMED"] }
-      },
+      where,
       include: {
         services: { include: { service: true } },
         employee: true

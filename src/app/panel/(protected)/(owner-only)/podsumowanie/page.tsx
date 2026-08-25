@@ -16,7 +16,13 @@ interface SummaryData {
 }
 
 export default function PodsumowaniePage() {
-  const { data, error, isLoading: loading } = useSWR<{ summary: SummaryData }>("/api/panel/summary");
+  const [from] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 1);
+    return d.toISOString().slice(0, 10);
+  });
+
+  const { data, error, isLoading: loading } = useSWR<{ summary: SummaryData }>(`/api/panel/summary?from=${from}`);
   const summary = data?.summary ?? null;
 
   if (loading) {

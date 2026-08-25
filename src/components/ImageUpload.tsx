@@ -34,6 +34,47 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
     aspectRatio === "square" ? "aspect-square" : 
     "aspect-[4/5]";
 
+  async function compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement("img");
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        
+        if (!ctx) return resolve(file);
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
+              type: "image/webp",
+              lastModified: Date.now(),
+            });
+            resolve(newFile);
+          },
+          "image/webp",
+          quality
+        );
+      };
+      
+      img.onerror = () => reject(new Error("Nie można przetworzyć zdjęcia"));
+      img.src = url;
+    });
+  }
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -43,7 +84,9 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
     setError(null);
 
     try {
-      const newBlob = await upload(file.name, file, {
+      const compressedFile = await compressImage(file, 2000, 0.85);
+      
+      const newBlob = await upload(compressedFile.name, compressedFile, {
         access: 'public',
         handleUploadUrl: '/api/upload',
         onUploadProgress: (progressEvent) => {
@@ -84,7 +127,7 @@ export default function ImageUpload({ label, value, onChange, aspectRatio = "vid
                 <span className="text-xs mt-1 text-[var(--muted)]">Proszę czekać, nie zamykaj okna</span>
               </>
             ) : (
-              <span className="text-xs md:text-sm px-2">Kliknij, aby wgrać zdjęcie (bez limitu rozmiaru)</span>
+              <span className="text-xs md:text-sm px-2">Kliknij, aby wgrać zdjęcie (maks. 8MB)</span>
             )}
           </div>
         )}
