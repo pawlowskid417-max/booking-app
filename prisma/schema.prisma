@@ -238,6 +238,7 @@ model Appointment {
   updatedAt       DateTime @updatedAt
 
   @@index([employeeId, startAt])
+  @@index([startAt])
   @@index([clientEmail])
   @@index([status])
   @@map("appointments")

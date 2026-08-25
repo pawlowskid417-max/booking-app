@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Employee, Service } from "@/lib/types";
 import { formatPrice, formatDurationMin, formatDatePL } from "@/lib/types";
+import { supabase } from "@/lib/supabase-client";
 import Stepper, { Step } from "./Stepper";
 
 import useSWR, { SWRConfig } from "swr";
@@ -100,6 +101,28 @@ function BookingWizardInner() {
   useEffect(() => {
     setSelectedTime(null);
   }, [selectedDate]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('booking-availability')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'appointments' },
+        (payload) => {
+          // Jeśli jesteśmy na etapie wyboru daty i ktoś zrobi rezerwację
+          if (selectedDate && selectedEmployee && selectedServices.length > 0) {
+            alert("Ktoś przed chwilą zarezerwował wizytę w salonie. Odświeżam listę dostępnych godzin na wybrany dzień, aby uniknąć overbookingu.");
+            revalidateSlots();
+            setSelectedTime(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedDate, selectedEmployee, selectedServices, revalidateSlots]);
 
   const groupedDays = useMemo(() => {
     const map = new Map<string, DayInfo[]>();

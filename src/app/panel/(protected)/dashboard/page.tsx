@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
+import { supabase } from "@/lib/supabase-client";
 import PanelNav from "@/components/PanelNav";
 import PanelLoading from "@/components/PanelLoading";
 import type { AppointmentWithDetails } from "@/lib/types";
@@ -50,6 +51,24 @@ export default function DashboardPage() {
   
   const appointments = data ? data.flatMap(d => d.appointments) : [];
   const hasMore = data && data[data.length - 1]?.nextSkip !== null;
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments' },
+        (payload) => {
+          // Odśwież widok przy jakiejkolwiek zmianie w wizytach
+          mutate();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [mutate]);
 
   async function updateStatus(id: string, status: string) {
     setActionError(null);
