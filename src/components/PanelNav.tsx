@@ -74,6 +74,7 @@ export default function PanelNav() {
               <Link
                 key={l.href}
                 href={l.href}
+                prefetch={true}
                 onMouseEnter={() => handlePrefetch(l.href)}
                 className={`text-sm px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
                   pathname === l.href

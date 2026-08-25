@@ -159,54 +159,53 @@ export default function LoginPage() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-sm w-full z-10">
-        <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6 text-center">
-          Panel salonu
-        </h1>
-        <form
-          onSubmit={handleSubmit}
-          className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-sm"
-        >
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-2.5"
-            >
-              {error}
-            </motion.div>
-          )}
-          <label className="block">
-            <span className="text-sm font-medium">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input"
-              disabled={loadingState !== "IDLE"}
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium">Hasło</span>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              disabled={loadingState !== "IDLE"}
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={loadingState !== "IDLE"}
-            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-80 text-white font-medium py-3 rounded-full transition-colors"
+      {loadingState === "IDLE" && (
+        <div className="max-w-sm w-full z-10">
+          <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6 text-center">
+            Panel salonu
+          </h1>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-sm"
           >
-            Zaloguj się
-          </button>
-        </form>
-      </div>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-2.5"
+              >
+                {error}
+              </motion.div>
+            )}
+            <label className="block">
+              <span className="text-sm font-medium">Email</span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium">Hasło</span>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+              />
+            </label>
+            <button
+              type="submit"
+              className="w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-medium py-3 rounded-full transition-colors"
+            >
+              Zaloguj się
+            </button>
+          </form>
+        </div>
+      )}
 
       <style jsx global>{`
         .input {
