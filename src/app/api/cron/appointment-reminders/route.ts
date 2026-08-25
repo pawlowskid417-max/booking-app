@@ -14,6 +14,10 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
+    // Pobierz ustawienia salonu (aby użyć dynamicznej nazwy w e-mailach)
+    const settings = await db.bookingSettings.findUnique({ where: { id: "singleton" } });
+    const salonName = settings?.salonName || "Studio Paznokci";
+
     // Znajdź rezerwacje w ciągu najbliższych 24h, dla których jeszcze nie wysłano przypomnienia
     const appointments = await db.appointment.findMany({
       where: {
@@ -44,7 +48,7 @@ export async function GET(req: NextRequest) {
           serviceName: serviceName,
           dateLabel,
           timeLabel,
-          salonName: "Studio Paznokci",
+          salonName: salonName,
         });
 
         await db.appointment.update({

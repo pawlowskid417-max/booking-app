@@ -59,10 +59,7 @@ export default function BookingWizard() {
 
   const serviceIdsStr = selectedServices.map(s => s.id).join(",");
 
-  // TODO: we should fetch employees that can perform ALL selected services. For now, fetch employees for the first service if multiple?
-  // Or fetch all, and frontend filters? Actually /api/employees?serviceId=... only takes one. We might need to adjust /api/employees.
-  // We will pass multiple as comma separated string `serviceIds` and fix the backend later or assume it works for the first one for now.
-  // Wait, let's just pass `serviceIds`!
+  // Przekazujemy wszystkie wybrane usługi do backendu – filtruje on pracowników z włączoną opcją AND
   const { data: employeesData, isLoading: employeesLoading } = useSWR(
     selectedServices.length > 0 ? `/api/employees?serviceIds=${serviceIdsStr}` : null,
     fetcher
