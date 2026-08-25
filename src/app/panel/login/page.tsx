@@ -29,19 +29,31 @@ export default function LoginPage() {
       
       setLoadingState("PRELOADING");
 
+      // Bardzo ważne: Next.js API Routes z cookies().set() wysyłają nagłówek Set-Cookie.
+      // Zanim odpalimy 9 równoległych zapytań uwierzytelnionych do API, 
+      // musimy dać przeglądarce chwilę (event loop) na fizyczne zapisanie ciastka w pamięci,
+      // inaczej pierwsze żądania polecą z pustym nagłówkiem Cookie i zwrócą 401 Brak Uprawnień!
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       const todayStr = new Date().toISOString().slice(0, 10);
       
       // Twarde pobranie danych z gwarancją czekania
+      // Zabezpieczamy poszczególne żądania przed wysadzeniem całego bloku
+      const safeFetcher = (url: string) => fetcher(url).catch(err => {
+        console.error(`Błąd preloadingu ${url}:`, err);
+        return null; // Zwracamy null zamiast rzucać błędem, by reszta mogła się załadować
+      });
+
       const [me, services, categories, employees, summary, settings, gallery, reviews, appointments] = await Promise.all([
-        fetcher("/api/panel/me"),
-        fetcher("/api/panel/services"),
-        fetcher("/api/panel/categories"),
-        fetcher("/api/panel/employees"),
-        fetcher("/api/panel/summary"),
-        fetcher("/api/panel/settings"),
-        fetcher("/api/panel/gallery"),
-        fetcher("/api/panel/reviews"),
-        fetcher(`/api/panel/appointments?from=${todayStr}`)
+        safeFetcher("/api/panel/me"),
+        safeFetcher("/api/panel/services"),
+        safeFetcher("/api/panel/categories"),
+        safeFetcher("/api/panel/employees"),
+        safeFetcher("/api/panel/summary"),
+        safeFetcher("/api/panel/settings"),
+        safeFetcher("/api/panel/gallery"),
+        safeFetcher("/api/panel/reviews"),
+        safeFetcher(`/api/panel/appointments?from=${todayStr}`)
       ]);
 
       // Nawodnienie globalnego cache SWR
