@@ -7,14 +7,6 @@ export const dynamic = "force-dynamic";
 export default async function BookingPage() {
   const services = await db.service.findMany({
     where: { isActive: true },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      category: true,
-      durationMin: true,
-      priceCents: true,
-    }
   });
 
   return (
