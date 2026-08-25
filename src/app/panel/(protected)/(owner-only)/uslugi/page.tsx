@@ -76,7 +76,7 @@ export default function UslugiPage() {
           </div>
         )}
 
-        {loading && <PanelLoading />}
+        {loading && !data && <PanelLoading />}
 
         <div className="space-y-3 mb-8">
           {services.map((s) => (

@@ -25,7 +25,7 @@ export default function PodsumowaniePage() {
   const { data, error, isLoading: loading } = useSWR<{ summary: SummaryData }>(`/api/panel/summary?from=${from}`);
   const summary = data?.summary ?? null;
 
-  if (loading) {
+  if (loading && !summary) {
     return (
       <main className="flex-1 bg-[var(--background)]">
         

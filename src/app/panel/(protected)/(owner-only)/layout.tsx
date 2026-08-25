@@ -1,13 +1,20 @@
-import { getSessionUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function OwnerOnlyLayout({
+import useSWR from "swr";
+import PanelLoading from "@/components/PanelLoading";
+
+export default function OwnerOnlyLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getSessionUser();
-  
+  const { data, isLoading } = useSWR<{ user: { role: string } }>("/api/panel/me");
+  const user = data?.user;
+
+  if (isLoading) {
+    return <PanelLoading />;
+  }
+
   if (!user || user.role !== "OWNER") {
     return (
       <div className="flex-1 flex items-center justify-center p-10">

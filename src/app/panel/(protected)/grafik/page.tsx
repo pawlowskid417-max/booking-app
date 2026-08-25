@@ -55,11 +55,11 @@ export default function GrafikPage() {
     }
   }, [user, employees, selectedEmployeeId]);
 
-  const { data: whData, isLoading: loadingWH, mutate: mutateWH } = useSWR<{ workingHours: WorkingHourRow[] }>(
+  const { data: whData, mutate: mutateWH } = useSWR<{ workingHours: WorkingHourRow[] }>(
     selectedEmployeeId ? `/api/panel/working-hours?employeeId=${selectedEmployeeId}` : null
   );
 
-  const { data: doData, isLoading: loadingDO, mutate: mutateDO } = useSWR<{ overrides: DayOverrideRow[] }>(
+  const { data: doData, mutate: mutateDO } = useSWR<{ overrides: DayOverrideRow[] }>(
     selectedEmployeeId ? `/api/panel/day-overrides?employeeId=${selectedEmployeeId}` : null
   );
 
@@ -79,7 +79,7 @@ export default function GrafikPage() {
   }, [whData]);
 
   const overrides = doData?.overrides ?? [];
-  const pageReady = user && employees.length > 0 && !loadingWH && !loadingDO;
+  const pageReady = Boolean(user && empData && (!selectedEmployeeId || (whData && doData)));
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);

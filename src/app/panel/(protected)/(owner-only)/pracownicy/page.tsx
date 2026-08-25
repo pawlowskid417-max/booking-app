@@ -126,7 +126,7 @@ export default function PracownicyPage() {
           </div>
         )}
 
-        {loading && <PanelLoading />}
+        {loading && !data && <PanelLoading />}
 
         <div className="space-y-4 mb-8">
           {employees.map((e) => (

@@ -117,7 +117,7 @@ export default function GaleriaPage() {
         <section>
           <h2 className="font-medium mb-4">Twoje portfolio ({images.length})</h2>
           
-          {loading && <PanelLoading />}
+          {loading && !data && <PanelLoading />}
           
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {images.map((img, index) => (

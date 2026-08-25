@@ -89,7 +89,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {loading && <PanelLoading />}
+        {loading && !data && <PanelLoading />}
 
         {!loading && appointments.length === 0 && (
           <div className="text-center py-16 text-[var(--muted)]">

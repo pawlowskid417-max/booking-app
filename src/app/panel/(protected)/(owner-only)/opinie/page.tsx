@@ -36,7 +36,7 @@ export default function ReviewsAdminPage() {
     }
   }
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <main className="flex-1 bg-[var(--background)]">
         <PanelLoading />

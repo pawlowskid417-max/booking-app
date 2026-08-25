@@ -50,7 +50,7 @@ export default function CategoriesPanel() {
     }
   }
 
-  if (loading) {
+  if (loading && !categoriesData) {
     return (
       <main className="flex-1 p-6 md:p-10 flex items-center justify-center">
         <PanelLoading />

@@ -12,7 +12,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)]">
-      <SWRConfig value={{ fetcher, revalidateOnFocus: false, dedupingInterval: 10000 }}>
+      <SWRConfig value={{ fetcher, revalidateOnFocus: false, dedupingInterval: 10000, keepPreviousData: true }}>
         {!isLogin && <PanelNav />}
         <AnimatePresence mode="wait">
           <motion.div
