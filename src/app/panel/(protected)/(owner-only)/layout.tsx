@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function OwnerOnlyLayout({
@@ -6,7 +6,7 @@ export default async function OwnerOnlyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
+  const user = await getSessionUser();
   
   if (!user || user.role !== "OWNER") {
     return (

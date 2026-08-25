@@ -11,14 +11,19 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await db.user.findUnique({
-      where: { email: email.trim().toLowerCase() }
+      where: { email: email.trim().toLowerCase() },
+      include: { employee: true }
     });
 
     if (!user || !verifyPassword(password, user.passwordHash)) {
       return NextResponse.json({ error: "Nieprawidłowy email lub hasło" }, { status: 401 });
     }
 
-    await createSession(user.id);
+    await createSession({
+      id: user.id,
+      role: user.role,
+      employeeId: user.employee?.id ?? null
+    });
 
     return NextResponse.json({ success: true, role: user.role });
   } catch (error: any) {

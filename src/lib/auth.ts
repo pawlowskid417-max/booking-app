@@ -1,6 +1,7 @@
 import { db } from "./db";
-import { scryptSync, timingSafeEqual, randomBytes, createHmac } from "crypto";
+import { scryptSync, timingSafeEqual, randomBytes } from "crypto";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 const SESSION_COOKIE = "panel_session";
 const SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
@@ -28,38 +29,68 @@ export function verifyPassword(password: string, stored: string): boolean {
 
 export interface SessionUser {
   id: string;
-  email: string;
+  email?: string;
   role: string;
   employeeId: string | null;
 }
 
-function sign(payload: string): string {
+const encoder = new TextEncoder();
+
+async function getCryptoKey() {
   requireSecret();
-  const hmac = createHmac("sha256", SECRET);
-  hmac.update(payload);
-  return `${payload}.${hmac.digest("hex")}`;
+  return crypto.subtle.importKey(
+    "raw",
+    encoder.encode(SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"]
+  );
 }
 
-function verify(signed: string): string | null {
-  requireSecret();
+function arrayBufferToHex(buffer: ArrayBuffer) {
+  return Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function hexToArrayBuffer(hex: string) {
+  const view = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    view[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return view.buffer;
+}
+
+export async function sign(payload: string): Promise<string> {
+  const key = await getCryptoKey();
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+  return `${payload}.${arrayBufferToHex(signature)}`;
+}
+
+export async function verify(signed: string): Promise<string | null> {
   const parts = signed.split(".");
   if (parts.length !== 2) return null;
   const payload = parts[0];
-  const signature = parts[1];
+  const signatureHex = parts[1];
   
-  const expectedSignature = createHmac("sha256", SECRET).update(payload).digest("hex");
-  if (timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
-    return payload;
+  try {
+    const key = await getCryptoKey();
+    const signatureBuffer = hexToArrayBuffer(signatureHex);
+    const isValid = await crypto.subtle.verify("HMAC", key, signatureBuffer, encoder.encode(payload));
+    return isValid ? payload : null;
+  } catch (e) {
+    return null;
   }
-  return null;
 }
 
-export async function createSession(userId: string): Promise<string> {
+export async function createSession(user: { id: string, role: string, employeeId?: string | null }): Promise<string> {
   const payloadStr = JSON.stringify({
-    userId,
+    userId: user.id,
+    role: user.role,
+    employeeId: user.employeeId || null,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 7 // 7 dni
   });
-  const token = sign(payloadStr);
+  const token = await sign(payloadStr);
 
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
@@ -78,12 +109,12 @@ export async function destroySession() {
   store.delete(SESSION_COOKIE);
 }
 
-export async function getCurrentUser(): Promise<SessionUser | null> {
+export async function getSessionUser(): Promise<SessionUser | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const payloadStr = verify(token);
+  const payloadStr = await verify(token);
   if (!payloadStr) return null;
   
   try {
@@ -92,8 +123,23 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       return null;
     }
 
+    return {
+      id: payload.userId,
+      role: payload.role,
+      employeeId: payload.employeeId ?? null,
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) return null;
+
+  try {
     const user = await db.user.findUnique({
-      where: { id: payload.userId },
+      where: { id: sessionUser.id },
       include: { employee: true },
     });
 
@@ -108,4 +154,4 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   } catch (e) {
     return null;
   }
-}
+});

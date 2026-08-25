@@ -29,9 +29,6 @@ export default function LoginPage() {
       
       setLoadingState("PRELOADING");
 
-      // Czekamy chwilę na zapisanie cookies
-      await new Promise(resolve => setTimeout(resolve, 300));
-
       const todayStr = new Date().toISOString().slice(0, 10);
       
       const safeFetcher = (url: string) => fetcher(url).catch(err => {
@@ -77,11 +74,14 @@ export default function LoginPage() {
         if (ov) mutate(`/api/panel/day-overrides?employeeId=${empId}`, ov, false);
       }
 
+      // Weryfikacja, czy sesja realnie zadziałała
+      if (!me?.user) {
+        throw new Error("Nie udało się ustanowić sesji.");
+      }
+
       setLoadingState("FINISHED");
       
-      // Wywołanie router.push od razu. Usunąłem router.refresh(), 
-      // ponieważ mógł wywoływać reset drzewa React i wyczyszczenie SWR cache.
-      router.push("/panel/dashboard");
+      router.replace("/panel/dashboard");
       
     } catch (e) {
       setError(e instanceof Error ? e.message : "Błąd logowania");
