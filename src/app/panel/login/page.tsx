@@ -4,13 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { preload } from "swr";
 import { fetcher } from "@/lib/fetcher";
+import { motion, AnimatePresence } from "motion/react";
+import { Heart } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loadingState, setLoadingState] = useState<"IDLE" | "LOGGING_IN" | "PREPARING">("IDLE");
+  const [loadingState, setLoadingState] = useState<"IDLE" | "LOGGING_IN" | "PRELOADING" | "FINISHED">("IDLE");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,24 +27,23 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      setLoadingState("PREPARING");
+      setLoadingState("PRELOADING");
 
-      preload("/api/panel/me", fetcher);
-      preload("/api/panel/services", fetcher);
-      preload("/api/panel/categories", fetcher);
-      preload("/api/panel/employees", fetcher);
-      preload("/api/panel/summary", fetcher);
-      preload("/api/panel/settings", fetcher);
-      preload("/api/panel/gallery", fetcher);
-      preload("/api/panel/reviews", fetcher);
       const todayStr = new Date().toISOString().slice(0, 10);
-      preload(`/api/panel/appointments?from=${todayStr}`, fetcher);
+      
+      await Promise.all([
+        preload("/api/panel/me", fetcher),
+        preload("/api/panel/services", fetcher),
+        preload("/api/panel/categories", fetcher),
+        preload("/api/panel/employees", fetcher),
+        preload("/api/panel/summary", fetcher),
+        preload("/api/panel/settings", fetcher),
+        preload("/api/panel/gallery", fetcher),
+        preload("/api/panel/reviews", fetcher),
+        preload(`/api/panel/appointments?from=${todayStr}`, fetcher)
+      ]);
 
-      // Dodanie małego sztucznego opóźnienia na załadowanie danych z SWR i animację
-      await new Promise(resolve => setTimeout(resolve, 1200));
-
-      router.push("/panel/dashboard");
-      router.refresh();
+      setLoadingState("FINISHED");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Błąd logowania");
       setLoadingState("IDLE");
@@ -50,38 +51,76 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16 bg-[var(--background)] relative">
+    <main className="flex-1 flex items-center justify-center px-6 py-16 bg-[var(--background)] relative overflow-hidden">
       
-      {loadingState !== "IDLE" && (
-        <div className="fixed inset-0 z-50 bg-[var(--background)]/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
-          <div className="bg-[var(--surface)] p-8 md:p-10 rounded-3xl shadow-2xl shadow-[var(--accent)]/10 border border-[var(--border)] flex flex-col items-center gap-6 max-w-sm w-[90%] text-center animate-in zoom-in-95 duration-500">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-              {/* Tło kółka */}
-              <div className="absolute inset-0 border-4 border-[var(--accent-light)] rounded-full"></div>
-              {/* Animowany spinner */}
-              <div className="absolute inset-0 border-4 border-[var(--accent)] rounded-full border-t-transparent animate-spin"></div>
-              
-              {/* Serce w środku gdy pobiera dane */}
-              <div className={`transition-all duration-500 ${loadingState === "PREPARING" ? "scale-100 opacity-100" : "scale-50 opacity-0"}`}>
-                <div className="w-5 h-5 bg-[var(--accent)] rounded-full animate-pulse"></div>
+      <AnimatePresence onExitComplete={() => {
+        if (loadingState === "FINISHED") {
+          router.push("/panel/dashboard");
+          router.refresh();
+        }
+      }}>
+        {loadingState !== "IDLE" && loadingState !== "FINISHED" && (
+          <motion.div 
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
+            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            className="fixed inset-0 z-50 bg-[var(--background)]/70 flex flex-col items-center justify-center"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: -10 }}
+              transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+              className="bg-[var(--surface)] p-8 md:p-10 rounded-[1.75rem] shadow-2xl shadow-[var(--accent)]/10 border border-[var(--border)] flex flex-col items-center gap-6 max-w-sm w-[90%] text-center"
+            >
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                <div className="absolute inset-0 border-[3px] border-[var(--accent-light)] rounded-full opacity-60"></div>
+                
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  className="absolute inset-0 border-[3px] border-[var(--accent)] rounded-full border-t-transparent"
+                ></motion.div>
+                
+                <AnimatePresence>
+                  {loadingState === "PRELOADING" && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                    >
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      >
+                        <Heart className="w-5 h-5 text-[var(--accent)] fill-current" />
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-            
-            <div className="space-y-1.5">
-              <h3 className="font-display text-xl text-[var(--accent-dark)] transition-all duration-300">
-                {loadingState === "LOGGING_IN" ? "Trwa logowanie" : "Przygotowujemy panel"}
-              </h3>
-              <p className="text-sm text-[var(--muted)] transition-all duration-300">
-                {loadingState === "LOGGING_IN" 
-                  ? "Weryfikacja szyfrowanego połączenia..." 
-                  : "Pobieramy grafik, usługi i rezerwacje..."}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+              
+              <div className="space-y-1 min-h-[4rem] flex flex-col justify-center">
+                <AnimatePresence mode="wait">
+                  {loadingState === "LOGGING_IN" ? (
+                    <motion.div key="login" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.25 }}>
+                      <h3 className="font-display text-xl text-[var(--accent-dark)]">Trwa logowanie</h3>
+                      <p className="text-sm text-[var(--muted)] mt-1">Weryfikacja poświadczeń...</p>
+                    </motion.div>
+                  ) : (
+                    <motion.div key="preload" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.25 }}>
+                      <h3 className="font-display text-xl text-[var(--accent-dark)]">Przygotowujemy panel</h3>
+                      <p className="text-sm text-[var(--muted)] mt-1">Pobieramy bezpiecznie z serwera grafiki, rezerwacje i ustawienia...</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="max-w-sm w-full">
+      <div className="max-w-sm w-full z-10">
         <h1 className="font-display text-2xl text-[var(--accent-dark)] mb-6 text-center">
           Panel salonu
         </h1>
@@ -90,9 +129,13 @@ export default function LoginPage() {
           className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 space-y-4 shadow-sm"
         >
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-2.5 animate-in fade-in zoom-in duration-200">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-2.5"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
           <label className="block">
             <span className="text-sm font-medium">Email</span>
@@ -119,7 +162,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loadingState !== "IDLE"}
-            className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-90 disabled:cursor-not-allowed text-white font-medium py-3 rounded-full transition-all duration-300"
+            className="w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-80 text-white font-medium py-3 rounded-full transition-colors"
           >
             Zaloguj się
           </button>
