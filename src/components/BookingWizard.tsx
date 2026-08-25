@@ -5,7 +5,7 @@ import type { Employee, Service } from "@/lib/types";
 import { formatPrice, formatDurationMin, formatDatePL } from "@/lib/types";
 import Stepper, { Step } from "./Stepper";
 
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -14,7 +14,21 @@ interface DayInfo {
   hasSlots: boolean;
 }
 
-export default function BookingWizard() {
+export default function BookingWizard({ initialServices }: { initialServices?: Service[] }) {
+  return (
+    <SWRConfig
+      value={{
+        fallback: initialServices ? { "/api/services": { services: initialServices } } : {},
+        revalidateOnFocus: false,
+        keepPreviousData: true,
+      }}
+    >
+      <BookingWizardInner />
+    </SWRConfig>
+  );
+}
+
+function BookingWizardInner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

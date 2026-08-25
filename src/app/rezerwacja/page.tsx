@@ -1,7 +1,22 @@
 import BookingWizard from "@/components/BookingWizard";
 import Link from "next/link";
+import { db } from "@/lib/db";
 
-export default function BookingPage() {
+export const dynamic = "force-dynamic";
+
+export default async function BookingPage() {
+  const services = await db.service.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      category: true,
+      durationMin: true,
+      priceCents: true,
+    }
+  });
+
   return (
     <main className="flex-1 bg-[var(--background)] h-[100dvh] overflow-hidden flex flex-col">
       <header className="fixed w-full top-6 left-1/2 -translate-x-1/2 z-50 px-4 max-w-3xl">
@@ -22,7 +37,7 @@ export default function BookingPage() {
           </p>
         </div>
         <div className="flex-1 overflow-hidden flex flex-col min-h-0 pb-4">
-          <BookingWizard />
+          <BookingWizard initialServices={services} />
         </div>
       </div>
     </main>

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
@@ -166,17 +166,19 @@ export async function POST(req: NextRequest) {
   }
 
   const cancelUrl = `${req.nextUrl.origin}/anuluj/${cancelToken}`;
-  await sendBookingConfirmation({
-    appointmentId,
-    clientEmail: clientEmail.trim().toLowerCase(),
-    clientFirstName: clientFirstName.trim(),
-    employeeName: `${employee.firstName} ${employee.lastName}`,
-    serviceName: serviceNames,
-    dateLabel: formatDatePL(date),
-    timeLabel: time,
-    cancelUrl,
-    salonName: settings.salonName,
-  }).catch((err) => console.error("Błąd wysyłki email:", err));
+  after(() => {
+    sendBookingConfirmation({
+      appointmentId,
+      clientEmail: clientEmail.trim().toLowerCase(),
+      clientFirstName: clientFirstName.trim(),
+      employeeName: `${employee.firstName} ${employee.lastName}`,
+      serviceName: serviceNames,
+      dateLabel: formatDatePL(date),
+      timeLabel: time,
+      cancelUrl,
+      salonName: settings.salonName,
+    }).catch((err) => console.error("Błąd wysyłki email:", err));
+  });
 
   return NextResponse.json({
     success: true,
