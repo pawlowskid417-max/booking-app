@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { preload } from "swr";
+import { mutate } from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { motion, AnimatePresence } from "motion/react";
 import { Heart } from "lucide-react";
@@ -31,17 +31,46 @@ export default function LoginPage() {
 
       const todayStr = new Date().toISOString().slice(0, 10);
       
-      await Promise.all([
-        preload("/api/panel/me", fetcher),
-        preload("/api/panel/services", fetcher),
-        preload("/api/panel/categories", fetcher),
-        preload("/api/panel/employees", fetcher),
-        preload("/api/panel/summary", fetcher),
-        preload("/api/panel/settings", fetcher),
-        preload("/api/panel/gallery", fetcher),
-        preload("/api/panel/reviews", fetcher),
-        preload(`/api/panel/appointments?from=${todayStr}`, fetcher)
+      // Twarde pobranie danych z gwarancją czekania
+      const [me, services, categories, employees, summary, settings, gallery, reviews, appointments] = await Promise.all([
+        fetcher("/api/panel/me"),
+        fetcher("/api/panel/services"),
+        fetcher("/api/panel/categories"),
+        fetcher("/api/panel/employees"),
+        fetcher("/api/panel/summary"),
+        fetcher("/api/panel/settings"),
+        fetcher("/api/panel/gallery"),
+        fetcher("/api/panel/reviews"),
+        fetcher(`/api/panel/appointments?from=${todayStr}`)
       ]);
+
+      // Nawodnienie globalnego cache SWR
+      mutate("/api/panel/me", me, false);
+      mutate("/api/panel/services", services, false);
+      mutate("/api/panel/categories", categories, false);
+      mutate("/api/panel/employees", employees, false);
+      mutate("/api/panel/summary", summary, false);
+      mutate("/api/panel/settings", settings, false);
+      mutate("/api/panel/gallery", gallery, false);
+      mutate("/api/panel/reviews", reviews, false);
+      mutate(`/api/panel/appointments?from=${todayStr}`, appointments, false);
+
+      // Preload grafiku dla wybranego pracownika
+      let empId = "";
+      if (me?.user?.role !== "OWNER" && me?.user?.employeeId) {
+        empId = me.user.employeeId;
+      } else if (me?.user?.role === "OWNER" && employees?.employees?.length > 0) {
+        empId = employees.employees[0].id;
+      }
+
+      if (empId) {
+        const [wh, ov] = await Promise.all([
+          fetcher(`/api/panel/working-hours?employeeId=${empId}`),
+          fetcher(`/api/panel/day-overrides?employeeId=${empId}`)
+        ]);
+        mutate(`/api/panel/working-hours?employeeId=${empId}`, wh, false);
+        mutate(`/api/panel/day-overrides?employeeId=${empId}`, ov, false);
+      }
 
       setLoadingState("FINISHED");
     } catch (e) {
