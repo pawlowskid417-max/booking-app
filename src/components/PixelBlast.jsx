@@ -1,7 +1,7 @@
 "use client";
 
 import { Effect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import './PixelBlast.css';
 
@@ -331,9 +331,34 @@ const PixelBlast = ({
   const visibilityRef = useRef({ visible: true });
   const speedRef = useRef(speed);
 
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Sprawdzenie prefers-reduced-motion
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduceMotion(mql.matches);
+    const motionHandler = (e) => setReduceMotion(e.matches);
+    mql.addEventListener('change', motionHandler);
+
+    // Sprawdzenie szerokości (telefony)
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      mql.removeEventListener('change', motionHandler);
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
   const threeRef = useRef(null);
   const prevConfigRef = useRef(null);
   useEffect(() => {
+    if (reduceMotion || isMobile) return; // Zapobiega startowaniu renderera
+
     const container = containerRef.current;
     if (!container) return;
     speedRef.current = speed;
@@ -597,6 +622,19 @@ const PixelBlast = ({
     color,
     speed
   ]);
+
+  if (reduceMotion || isMobile) {
+    return (
+      <div 
+        className={`pixel-blast-container ${className ?? ''}`} 
+        style={{ 
+          ...style, 
+          background: 'radial-gradient(circle at center, #1a151b 0%, #0A0A0F 100%)' 
+        }} 
+        aria-label="Static background for reduced motion / mobile"
+      />
+    );
+  }
 
   return (
     <div
