@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import PanelLoading from "@/components/PanelLoading";
 import ImageUpload from "@/components/ImageUpload";
+import Image from "next/image";
 import type { Service } from "@/lib/types";
 
 interface EmployeeRow {
@@ -138,7 +139,7 @@ export default function PracownicyPage() {
               <div className="flex items-center justify-between gap-4 mb-3">
                 <div className="flex items-center gap-4">
                   {e.photoUrl && (
-                    <img src={e.photoUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+                    <Image src={e.photoUrl} alt="Avatar" width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
                   )}
                   <div>
                     <p className="font-medium">
